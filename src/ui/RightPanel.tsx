@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { useApp, useSelectedNode, useCurrentPage } from '../store/useApp'
 import { REGISTRY } from '../core/registry'
 import { FieldControl } from './fields'
@@ -21,10 +21,28 @@ const STYLE_FIELDS: { key: keyof NodeStyle; label: string; max: number }[] = [
 function NodeProps({ node }: { node: MpNode }) {
   const updateNodeProps = useApp((s) => s.updateNodeProps)
   const updateNodeStyle = useApp((s) => s.updateNodeStyle)
+  const updateNodeLink = useApp((s) => s.updateNodeLink)
+  const pages = useApp((s) => s.project?.pages ?? [])
+  const setPage = useApp((s) => s.setPage)
+  const saveBlock = useApp((s) => s.saveBlock)
+  const [saving, setSaving] = useState(false)
+  const [blkName, setBlkName] = useState('')
   const def = REGISTRY[node.type]
 
   if (!def) {
     return <div className="p-5 text-[13px] text-ink-400">未注册的组件类型：{node.type}</div>
+  }
+
+  const linkTo = node.link?.to || ''
+  const testJump = () => {
+    if (!linkTo) return
+    const target = pages.find((p) => p.path === linkTo)
+    if (target) setPage(target.id)
+  }
+  const confirmSave = () => {
+    saveBlock(blkName.trim(), node.id)
+    setSaving(false)
+    setBlkName('')
   }
 
   return (
@@ -97,6 +115,83 @@ function NodeProps({ node }: { node: MpNode }) {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* 交互：页面跳转 */}
+      <div className="mt-5 pt-4 border-t border-ink-100">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[11.5px] font-semibold text-ink-600">页面跳转</div>
+          {linkTo ? (
+            <button onClick={testJump} className="text-[11px] text-brand-600 hover:text-brand-700 inline-flex items-center gap-0.5">
+              ↗ 测试跳转
+            </button>
+          ) : null}
+        </div>
+        <select
+          value={linkTo}
+          onChange={(e) => updateNodeLink(node.id, e.target.value)}
+          className="w-full h-8 px-2.5 rounded-lg border border-ink-200 bg-white text-[12.5px] text-ink-700 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+        >
+          <option value="">不跳转（纯展示）</option>
+          {pages.map((p) => (
+            <option key={p.id} value={p.path}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <div className="text-[11px] text-ink-400 mt-2 leading-relaxed">
+          选择目标页后，真机与导出代码中点击该组件即可跳转；导出为小程序原生 navigate / switchTab。
+        </div>
+      </div>
+
+      {/* 自定义区块 */}
+      <div className="mt-5 pt-4 border-t border-ink-100">
+        <div className="text-[11.5px] font-semibold text-ink-600 mb-3">保存为可复用区块</div>
+        {!saving ? (
+          <button
+            onClick={() => setSaving(true)}
+            className="w-full h-8 rounded-lg border border-dashed border-ink-200 text-ink-500 text-[11.5px] inline-flex items-center justify-center gap-1.5 hover:border-brand-300 hover:text-brand-600 transition"
+          >
+            <Copy size={12} /> 存为区块（含子组件组合）
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <input
+              autoFocus
+              value={blkName}
+              onChange={(e) => setBlkName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') confirmSave()
+                if (e.key === 'Escape') {
+                  setSaving(false)
+                  setBlkName('')
+                }
+              }}
+              placeholder={`区块名称，如「${def.name}组合」`}
+              className="w-full h-8 px-2.5 rounded-lg border border-brand-300 bg-white text-[12.5px] outline-none focus:ring-2 focus:ring-brand-100"
+            />
+            <div className="flex gap-1.5">
+              <button
+                onClick={confirmSave}
+                className="flex-1 h-8 rounded-lg bg-brand-600 text-white text-[12px] font-medium hover:bg-brand-700 transition"
+              >
+                保存
+              </button>
+              <button
+                onClick={() => {
+                  setSaving(false)
+                  setBlkName('')
+                }}
+                className="flex-1 h-8 rounded-lg border border-ink-200 text-ink-500 text-[12px] hover:border-ink-300 transition"
+              >
+                取消
+              </button>
+            </div>
+            <div className="text-[11px] text-ink-400 leading-relaxed">
+              保存后可在左侧「区块」面板一键插入到任意页面，跨页面复用你的组合。
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

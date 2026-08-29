@@ -9,6 +9,7 @@ import Editor from '../src/ui/Editor'
 import { useApp } from '../src/store/useApp'
 import { generateCodeFiles, collectIcons } from '../src/export/mpgen'
 import { buildDeployScripts } from '../src/export/deploy'
+import { runSelfCheck } from '../src/export/selfcheck'
 import { REGISTRY } from '../src/core/registry'
 import { ICONS, ICON_KEYS } from '../src/core/icons'
 import type { MpNode } from '../src/types'
@@ -242,6 +243,100 @@ check('本地持久化', () => {
   act(() => useApp.setState({ project: null, view: 'home' }))
   if (!useApp.getState().restore()) throw new Error('恢复失败')
   if (!useApp.getState().project) throw new Error('恢复后项目为空')
+})
+
+console.log(failed === 0 ? '\n✅ 全部冒烟测试通过' : `\n❌ ${failed} 项失败`)
+
+/* 7. 组件联动（点击跳转） */
+check('组件联动：属性面板设置跳转目标', () => {
+  const project = { ...TEMPLATES[2].build(), id: 'nav1' }
+  const target = project.pages[1].path
+  useApp.setState({ project, currentPageId: project.pages[0].id })
+  act(() => useApp.getState().updateNodeLink(project.pages[0].nodes[0].id, target))
+  const ln = useApp.getState().project!.pages[0].nodes.find((n) => n.id === project.pages[0].nodes[0].id)?.link
+  if (!ln || ln.to !== target) throw new Error('updateNodeLink 未写入 link')
+})
+
+check('组件联动：导出生成 onJump + mp-link 包裹', () => {
+  const project = { ...TEMPLATES[2].build(), id: 'nav2' }
+  const target = project.pages[1].path
+  useApp.setState({ project, currentPageId: project.pages[0].id })
+  act(() => useApp.getState().updateNodeLink(project.pages[0].nodes[0].id, target))
+  const p = useApp.getState().project!
+  const files = generateCodeFiles(p)
+  const renderWxml = String(files.find((f) => f.path === 'templates/render.wxml')!.content)
+  if (!renderWxml.includes('onJump')) throw new Error('render.wxml 未生成 onJump 绑定')
+  if (!renderWxml.includes('class="mp-link"')) throw new Error('render.wxml 未包裹 mp-link 容器')
+  const pageWxml = String(files.find((f) => f.path === `${p.pages[0].path}.wxml`)!.content)
+  if (!pageWxml.includes('template is="mp-node"')) throw new Error('页面 wxml 未引用 mp-node 模板')
+  if (!pageWxml.includes('import src="/templates/render.wxml"')) throw new Error('页面 wxml 未引入 render.wxml')
+  const pageJs = String(files.find((f) => f.path === `${p.pages[0].path}.js`)!.content)
+  if (!pageJs.includes('tabPages:')) throw new Error('页面 js 未注入 tabPages')
+})
+
+check('组件联动：tabBar 跳转用 switchTab', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'nav3' }
+  if (!project.tabBar.enabled) return
+  const files = generateCodeFiles(project)
+  const handlers = String(files.find((f) => f.path === 'utils/handlers.js')!.content)
+  if (!handlers.includes('onJump:')) throw new Error('handlers.js 未生成 onJump 处理器')
+  if (!handlers.includes('switchTab')) throw new Error('handlers.js 未使用 switchTab')
+})
+
+check('组件联动：通用点击 onTap 绑定到所有 CTA', () => {
+  const project = { ...TEMPLATES[3].build(), id: 'tap1' }
+  const files = generateCodeFiles(project)
+  const handlers = String(files.find((f) => f.path === 'utils/handlers.js')!.content)
+  if (!handlers.includes('onTap:')) throw new Error('handlers.js 缺少 onTap 处理器')
+  if (!handlers.includes('onPay:')) throw new Error('handlers.js 缺少 onPay 支付接入点')
+  const wxml = String(files.find((f) => f.path === 'templates/render.wxml')!.content)
+  if (!wxml.includes('catchtap="onTap"')) throw new Error('render.wxml 未给 CTA 绑定 onTap')
+  if (!wxml.includes('data-action="checkout"')) throw new Error('cartBar 未绑定结算动作')
+  if (!wxml.includes('data-action="claim"')) throw new Error('coupon 未绑定领取动作')
+})
+
+check('导出自检：正常项目通过', () => {
+  const project = { ...TEMPLATES[4].build(), id: 'sc1' }
+  const r = runSelfCheck(project)
+  if (!r.ok) throw new Error('正常项目自检未通过：' + r.items.filter((i) => i.level === 'error').map((i) => i.message).join('；'))
+  if (r.fileCount < 5) throw new Error('文件数异常')
+})
+
+check('导出自检：捕获非法跳转目标', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'sc2' }
+  project.pages[0].nodes[0].link = { to: 'pages/does-not-exist/index' }
+  const r = runSelfCheck(project)
+  if (r.ok) throw new Error('未捕获非法跳转目标')
+  if (!r.items.some((i) => i.level === 'error' && i.message.includes('跳转目标不存在')))
+    throw new Error('未报告跳转目标错误')
+})
+
+/* 8. 自定义组件区块 */
+check('自定义区块：保存为可复用区块', () => {
+  const project = { ...TEMPLATES[3].build(), id: 'blk1' }
+  useApp.setState({ project, currentPageId: project.pages[0].id })
+  const before = useApp.getState().blocks.length
+  const nodeId = project.pages[0].nodes[3]?.id ?? project.pages[0].nodes[0].id
+  act(() => useApp.getState().saveBlock('我的区块', nodeId))
+  const after = useApp.getState().blocks.length
+  if (after !== before + 1) throw new Error('保存区块失败')
+  const blk = useApp.getState().blocks[after - 1]
+  if (!blk.nodes?.length) throw new Error('区块内容为空')
+  if (blk.name !== '我的区块') throw new Error('区块名称不对')
+})
+
+check('自定义区块：插入与删除', () => {
+  const project = { ...TEMPLATES[3].build(), id: 'blk2' }
+  useApp.setState({ project, currentPageId: project.pages[0].id })
+  act(() => useApp.getState().saveBlock('测试区块', project.pages[0].nodes[0].id))
+  const bid = useApp.getState().blocks[useApp.getState().blocks.length - 1].id
+  const before = useApp.getState().project!.pages[0].nodes.length
+  act(() => useApp.getState().insertBlock(bid))
+  const inserted = useApp.getState().project!.pages[0].nodes.length
+  if (inserted !== before + 1) throw new Error('插入区块失败')
+  const bbefore = useApp.getState().blocks.length
+  act(() => useApp.getState().deleteBlock(bid))
+  if (useApp.getState().blocks.length !== bbefore - 1) throw new Error('删除区块失败')
 })
 
 console.log(failed === 0 ? '\n✅ 全部冒烟测试通过' : `\n❌ ${failed} 项失败`)

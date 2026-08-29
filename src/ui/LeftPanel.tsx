@@ -3,7 +3,7 @@ import { useApp, useCurrentPage, useSelectedNode } from '../store/useApp'
 import { COMPONENTS_BY_GROUP, REGISTRY } from '../core/registry'
 import { Icon } from '../render/primitives'
 import type { MpNode } from '../types'
-import { Blocks, Layers, FileStack, Plus, Trash2, Copy, ChevronRight, ChevronDown, Eye, Search, ArrowUp, ArrowDown, Home } from 'lucide-react'
+import { Blocks, Layers, FileStack, Plus, Trash2, Copy, ChevronRight, ChevronDown, Eye, Search, ArrowUp, ArrowDown, Home, Component } from 'lucide-react'
 
 /* ---------------- 组件库 ---------------- */
 
@@ -300,6 +300,7 @@ export default function LeftPanel() {
   const tabs = [
     { k: 'components' as const, label: '组件', icon: Blocks },
     { k: 'layers' as const, label: '图层', icon: Layers },
+    { k: 'blocks' as const, label: '区块', icon: Component },
     { k: 'pages' as const, label: '页面', icon: FileStack },
   ]
 
@@ -319,8 +320,64 @@ export default function LeftPanel() {
         ))}
       </div>
       <div className="flex-1 overflow-y-auto thin-scroll min-h-0">
-        {leftTab === 'components' ? <ComponentLib /> : leftTab === 'layers' ? <LayerTree /> : <PageList />}
+        {leftTab === 'components' ? <ComponentLib /> : leftTab === 'layers' ? <LayerTree /> : leftTab === 'blocks' ? <BlockList /> : <PageList />}
       </div>
     </aside>
+  )
+}
+
+/* ---------------- 自定义区块 ---------------- */
+
+function BlockList() {
+  const blocks = useApp((s) => s.blocks)
+  const insertBlock = useApp((s) => s.insertBlock)
+  const deleteBlock = useApp((s) => s.deleteBlock)
+  const selNode = useSelectedNode()
+  const parentId = selNode && REGISTRY[selNode.type]?.container ? selNode.id : null
+
+  return (
+    <div className="p-3">
+      <div className="mb-3 px-2.5 py-2 rounded-lg bg-brand-50 border border-brand-100 text-[11.5px] text-brand-700 leading-snug">
+        点「插入」把区块加到{parentId ? '选中的容器内' : '页面末尾'}。保存入口在右侧属性面板的「保存为可复用区块」。
+      </div>
+      {blocks.length === 0 ? (
+        <div className="p-6 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-ink-50 text-ink-300 flex items-center justify-center mx-auto mb-3">
+            <Component size={20} />
+          </div>
+          <div className="text-[12.5px] text-ink-500">还没有自定义区块</div>
+          <div className="text-[11px] text-ink-400 mt-1.5 leading-relaxed">
+            在预览区选中一个组件或容器，到右侧点「存为区块」，即可把当前组合保存下来反复复用。
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {blocks.map((b) => (
+            <div key={b.id} className="rounded-xl border border-ink-100 p-2.5 flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0">
+                <Icon name={b.icon} size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[12.5px] font-medium text-ink-800 truncate">{b.name}</div>
+                <div className="text-[10.5px] text-ink-400 truncate">{b.desc}</div>
+              </div>
+              <button
+                onClick={() => insertBlock(b.id, parentId)}
+                className="h-7 px-2.5 rounded-lg bg-brand-600 text-white text-[11.5px] hover:bg-brand-700 transition flex-shrink-0"
+              >
+                插入
+              </button>
+              <button
+                onClick={() => deleteBlock(b.id)}
+                title="删除区块"
+                className="h-7 w-7 rounded-lg border border-ink-200 text-ink-400 hover:text-red-500 hover:border-red-300 flex items-center justify-center transition flex-shrink-0"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

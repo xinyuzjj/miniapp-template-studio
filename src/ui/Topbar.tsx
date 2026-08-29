@@ -4,8 +4,9 @@ import { generateCodeFiles, collectIcons } from '../export/mpgen'
 import { generateComponentIcons, generateTabIcons } from '../export/icons'
 import { buildDeployScripts } from '../export/deploy'
 import { buildZip, downloadBlob } from '../export/zip'
-import { ArrowLeft, Undo2, Redo2, Code2, Download, Rocket, Loader2, Eye, EyeOff, CheckCircle2, X, BookOpen } from 'lucide-react'
+import { ArrowLeft, Undo2, Redo2, Code2, Download, Rocket, Loader2, Eye, EyeOff, CheckCircle2, X, BookOpen, ShieldCheck } from 'lucide-react'
 import { openTutorialCenter } from './Tutorial'
+import SelfCheckModal from './SelfCheckModal'
 
 export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: boolean) => void }) {
   const project = useApp((s) => s.project)!
@@ -22,6 +23,7 @@ export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: bool
   const [busy, setBusy] = useState<'code' | 'zip' | 'deploy' | null>(null)
   const [toast, setToast] = useState('')
   const [showGuide, setShowGuide] = useState(false)
+  const [showSelfCheck, setShowSelfCheck] = useState(false)
 
   const renameProject = (name: string) => {
     // 项目名存入 project.name（通过 updateTheme 之外的直接提交）
@@ -146,6 +148,13 @@ export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: bool
           导出代码
         </button>
         <button
+          onClick={() => setShowSelfCheck(true)}
+          title="导出前自检：代码校验 + 预览截图"
+          className="h-8 px-3 rounded-lg border border-ink-200 text-ink-600 text-[12.5px] inline-flex items-center gap-1.5 hover:border-brand-400 hover:text-brand-600 transition"
+        >
+          <ShieldCheck size={14} /> 导出自检
+        </button>
+        <button
           onClick={doDeploy}
           disabled={busy === 'deploy'}
           className="h-8 px-3.5 rounded-lg bg-brand-600 text-white text-[12.5px] font-medium inline-flex items-center gap-1.5 hover:bg-brand-700 transition disabled:opacity-60"
@@ -163,6 +172,7 @@ export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: bool
       ) : null}
 
       {showGuide ? <DeployGuide onClose={() => setShowGuide(false)} /> : null}
+      {showSelfCheck ? <SelfCheckModal project={project} onClose={() => setShowSelfCheck(false)} /> : null}
     </header>
   )
 }

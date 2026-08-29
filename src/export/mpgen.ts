@@ -106,6 +106,7 @@ export function compileNodes(nodes: MpNode[], seed = { n: 0 }): any[] {
       props,
       _s: styleStr(node.style),
       _r: node.style?.radius ?? 12,
+      _link: node.link?.to || '',
     }
     if (node.children && node.children.length) out.children = compileNodes(node.children, seed)
     return out
@@ -219,6 +220,46 @@ module.exports = {
       wx.showToast({ title: '已复制地址', icon: 'none' })
       wx.setClipboardData({ data: v })
     }
+  },
+
+  /** 统一跳转：tabBar 页面 switchTab，其余 navigateTo */
+  _mpJump: function (p) {
+    if (!p) return
+    var tabs = (this.data && this.data.tabPages) || []
+    if (tabs.indexOf(p) >= 0) {
+      wx.switchTab({ url: '/' + p, fail: function () {} })
+    } else {
+      wx.navigateTo({ url: '/' + p, fail: function () { wx.showToast({ title: '页面不存在', icon: 'none' }) } })
+    }
+  },
+
+  onJump: function (e) {
+    this._mpJump(e.currentTarget.dataset.page)
+  },
+
+  /** 通用点击：有目标页则跳转，否则按语义给出示例反馈（可在此接入后端 / 支付） */
+  onTap: function (e) {
+    var d = e.currentTarget.dataset
+    if (d.page) { this._mpJump(d.page); return }
+    var action = d.action
+    if (action === 'search') { wx.showToast({ title: '搜索需接入后端接口', icon: 'none' }); return }
+    if (action === 'claim') { wx.showToast({ title: '已领取（示例）', icon: 'success' }); return }
+    if (action === 'buy' || action === 'checkout') { this.onPay(e); return }
+    wx.showToast({ title: d.tip || '示例按钮 · 在编辑器为组件绑定跳转后即可跳转', icon: 'none' })
+  },
+
+  /**
+   * 支付能力接入点（示意，需自行实现后端）
+   * 微信支付必须走你的服务端：前端下单 → 服务端调用微信「统一下单」拿到 prepay_id →
+   * 返回 nonceStr / timeStamp / signType / paySign 给前端 → 调 wx.requestPayment。
+   * 完整步骤见导出包 README 的「如何接入支付 / 后端」一节。
+   */
+  onPay: function () {
+    wx.showModal({
+      title: '支付接入提示',
+      content: '本模板未内置支付。请接入你的后端：① 服务端调用微信「统一下单」获取 prepay_id；② 用返回的 nonceStr / timeStamp / signType / paySign 调 wx.requestPayment。详见导出包 README。',
+      showCancel: false,
+    })
   }
 }
 `
@@ -269,8 +310,9 @@ module.exports = {
 `
 }
 
-function pageJs(page: { path: string; navTitle: string }, nodes: any[]): string {
+function pageJs(page: { path: string; navTitle: string }, nodes: any[], tabPaths: string[]): string {
   const data = JSON.stringify(nodes, null, 2).split('\n').join('\n  ')
+  const tabData = JSON.stringify(tabPaths)
   return `// ${page.path}.js
 const T = require('../../utils/theme.js')
 const H = require('../../utils/handlers.js')
@@ -281,7 +323,8 @@ Page(Object.assign({}, H, {
   data: {
     T: T,
     nodes: NODES,
-    form: {}
+    form: {},
+    tabPages: ${tabData}
   },
   onLoad: function () {
     wx.setNavigationBarTitle({ title: ${JSON.stringify(page.navTitle)} })
@@ -447,6 +490,7 @@ export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile
   const files: GenFile[] = []
   const hasTab = p.tabBar.enabled && p.tabBar.items.length > 0
   const pagePaths = p.pages.map((x) => x.path)
+  const tabPaths = p.tabBar.enabled ? p.tabBar.items.map((i) => i.pagePath) : []
 
   files.push({ path: 'app.js', content: APP_JS })
   files.push({ path: 'app.wxss', content: APP_WXSS })
@@ -500,7 +544,7 @@ export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile
   p.pages.forEach((pg) => {
     const nodes = compileNodes(pg.nodes)
     const dir = pg.path.replace(/^pages\//, 'pages/')
-    files.push({ path: `${dir}.js`, content: pageJs(pg, nodes) })
+    files.push({ path: `${dir}.js`, content: pageJs(pg, nodes, tabPaths) })
     files.push({ path: `${dir}.wxml`, content: pageWxml() })
     files.push({ path: `${dir}.wxss`, content: pageWxss(pg.background) })
     files.push({ path: `${dir}.json`, content: pageJson(pg) })

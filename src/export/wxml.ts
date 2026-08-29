@@ -18,14 +18,14 @@ const ICON = (name: string, size: number | string, prefix = 'p') =>
 const IC = (name: string, size: number | string, prefix = 'p') =>
   `<image src="/images/icons/${prefix}_${name}.png" class="mp-ic" style="width:${size}rpx;height:${size}rpx"/>`
 
-export const RENDER_WXML = `<template name="mp-node">
+export const RENDER_WXML = `<template name="mp-node-inner">
 
   <!-- ============ 基础 ============ -->
   <view wx:if="{{node.type === 'view'}}" style="{{node._s}}">
     <view class="mp-flex {{node.props.direction === 'row' ? 'mp-row' : 'mp-col'}}" style="gap:{{node.props.gap * 2}}rpx;align-items:{{node.props.direction === 'row' ? (node.props.align === 'stretch' ? 'stretch' : node.props.align) : 'stretch'}}">
       <view wx:if="{{!node.children || node.children.length === 0}}" class="mp-empty">空容器</view>
       <block wx:for="{{node.children}}" wx:for-item="child" wx:key="id">
-        <template is="mp-node" data="{{node: child, T: T}}"/>
+        <template is="mp-node-inner" data="{{node: child, T: T}}"/>
       </block>
     </view>
   </view>
@@ -65,7 +65,7 @@ export const RENDER_WXML = `<template name="mp-node">
 
   <!-- ============ 导航 ============ -->
   <view wx:elif="{{node.type === 'search'}}" style="{{node._s}}">
-    <view class="mp-search" style="height:76rpx;border-radius:{{node.props.radius * 2}}rpx;background:{{node.props.background}};justify-content:{{node.props.align === 'center' ? 'center' : 'flex-start'}}">
+    <view class="mp-search" style="height:76rpx;border-radius:{{node.props.radius * 2}}rpx;background:{{node.props.background}};justify-content:{{node.props.align === 'center' ? 'center' : 'flex-start'}}" catchtap="onTap" data-action="search">
       ${IC('search', 30, 's')}
       <text class="mp-search-ph">{{node.props.placeholder}}</text>
     </view>
@@ -96,7 +96,7 @@ export const RENDER_WXML = `<template name="mp-node">
 
   <view wx:elif="{{node.type === 'grid'}}" style="{{node._s}}">
     <view class="mp-grid">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-grid-item" style="width:{{100 / node.props.columns}}%">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-grid-item" style="width:{{100 / node.props.columns}}%" catchtap="onTap" data-tip="栏目入口（示例）">
         <view class="mp-grid-ic" style="background:{{node.props.iconBg || T.primaryLight}};width:92rpx;height:92rpx;border-radius:28rpx">
           ${ICON('it.icon', 'node.props.iconSize * 2')}
           <view wx:if="{{it.badge}}" class="mp-grid-badge" style="background:{{T.secondary}}">{{it.badge}}</view>
@@ -134,7 +134,7 @@ export const RENDER_WXML = `<template name="mp-node">
           <view class="mp-cp-name" style="color:{{T.text}}">{{it.name}}</view>
           <view class="mp-cp-exp" style="color:{{T.subText}}">有效期至 2026.12.31</view>
         </view>
-        <view class="mp-cp-btn" style="background:{{T.secondary}}">{{it.tag}}</view>
+        <view class="mp-cp-btn" style="background:{{T.secondary}}" catchtap="onTap" data-action="claim">{{it.tag}}</view>
       </view>
     </scroll-view>
   </view>
@@ -166,7 +166,7 @@ export const RENDER_WXML = `<template name="mp-node">
       <view class="mp-banner-txt">
         <view class="mp-banner-t1">{{node.props.title}}</view>
         <view class="mp-banner-t2">{{node.props.sub}}</view>
-        <view wx:if="{{node.props.buttonText}}" class="mp-banner-btn">{{node.props.buttonText}}</view>
+        <view wx:if="{{node.props.buttonText}}" class="mp-banner-btn" catchtap="onTap" data-page="{{node._link}}" data-tip="活动详情（示例）">{{node.props.buttonText}}</view>
       </view>
     </view>
   </view>
@@ -187,7 +187,7 @@ export const RENDER_WXML = `<template name="mp-node">
   <view wx:elif="{{node.type === 'goods'}}" style="{{node._s}}">
     <!-- 横向滑动 -->
     <scroll-view wx:if="{{node.props.layout === 'row'}}" scroll-x class="mp-g-row">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-row-item" style="background:{{T.cardBg}}">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-row-item" style="background:{{T.cardBg}}" catchtap="onTap" data-page="{{node._link}}" data-tip="商品详情（示例）">
         <view class="mp-g-row-img">
           ${IMG('mp-fill', 'it')}
           <view wx:if="{{it.tag}}" class="mp-g-tag" style="background:{{T.secondary}}">{{it.tag}}</view>
@@ -205,7 +205,7 @@ export const RENDER_WXML = `<template name="mp-node">
 
     <!-- 纵向列表 -->
     <view wx:elif="{{node.props.layout === 'list'}}" class="mp-g-list" style="background:{{T.cardBg}}">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-list-item">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-list-item" catchtap="onTap" data-page="{{node._link}}" data-tip="商品详情（示例）">
         <view class="mp-g-list-img">
           ${IMG('mp-fill', 'it')}
         </view>
@@ -222,7 +222,7 @@ export const RENDER_WXML = `<template name="mp-node">
 
     <!-- 网格 -->
     <view wx:else class="mp-g-grid">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-grid-item" style="width:{{(100 - (node.props.columns - 1) * 2) / node.props.columns}}%;background:{{T.cardBg}}">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-grid-item" style="width:{{(100 - (node.props.columns - 1) * 2) / node.props.columns}}%;background:{{T.cardBg}}" catchtap="onTap" data-page="{{node._link}}" data-tip="商品详情（示例）">
         <view class="mp-g-grid-img">
           ${IMG('mp-fill', 'it')}
           <view wx:if="{{it.tag}}" class="mp-g-tag" style="background:{{T.secondary}}">{{it.tag}}</view>
@@ -280,7 +280,7 @@ export const RENDER_WXML = `<template name="mp-node">
       <view class="mp-cart-mid">
         <view class="mp-cart-total" style="color:{{T.text}}">{{node.props.total}}<text wx:if="{{node.props.tip}}" class="mp-cart-tip" style="color:{{T.secondary}}">{{node.props.tip}}</text></view>
       </view>
-      <view class="mp-cart-btn" style="background:{{T.primary}}">{{node.props.buttonText}}</view>
+      <view class="mp-cart-btn" style="background:{{T.primary}}" catchtap="onTap" data-action="checkout">{{node.props.buttonText}}</view>
     </view>
   </view>
 
@@ -296,7 +296,7 @@ export const RENDER_WXML = `<template name="mp-node">
             <text class="mp-pcard-ft" style="color:{{T.subText}}">{{ft}}</text>
           </view>
         </view>
-        <view class="mp-pcard-btn" style="background:{{it.highlight ? T.primary : T._pri08}};color:{{it.highlight ? '#ffffff' : T.primary}}">{{it.btnText}}</view>
+        <view class="mp-pcard-btn" style="background:{{it.highlight ? T.primary : T._pri08}};color:{{it.highlight ? '#ffffff' : T.primary}}" catchtap="onTap" data-page="{{node._link}}" data-tip="选择套餐（示例）">{{it.btnText}}</view>
       </view>
     </view>
   </view>
@@ -308,7 +308,7 @@ export const RENDER_WXML = `<template name="mp-node">
 
   <view wx:elif="{{node.type === 'article'}}" style="{{node._s}};background:{{T.cardBg}}">
     <view class="mp-articles">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-article">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-article" catchtap="onTap" data-page="{{node._link}}" data-tip="查看文章（示例）">
         <view class="mp-article-body">
           <view class="mp-article-title" style="color:{{T.text}}">{{it.title}}</view>
           <view class="mp-article-desc" style="color:{{T.subText}}">{{it.desc}}</view>
@@ -478,7 +478,7 @@ export const RENDER_WXML = `<template name="mp-node">
 
   <view wx:elif="{{node.type === 'serviceBar'}}" style="{{node._s}}">
     <view class="mp-service">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-service-item">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-service-item" catchtap="onTap" data-tip="客服入口（示例）">
         ${ICON('it.icon', 26)}
         <text class="mp-service-tx" style="color:{{T.subText}}">{{it.text}}</text>
       </view>
@@ -497,11 +497,23 @@ export const RENDER_WXML = `<template name="mp-node">
   </view>
 
 </template>
+
+<template name="mp-node">
+  <!-- 跳转外壳：设置了 link 的节点整体可点击跳转 -->
+  <view wx:if="{{node._link}}" class="mp-link" bindtap="onJump" data-page="{{node._link}}" hover-class="mp-link-hover" hover-stay-time="60">
+    <template is="mp-node-inner" data="{{node: node, T: T}}"/>
+  </view>
+  <block wx:else>
+    <template is="mp-node-inner" data="{{node: node, T: T}}"/>
+  </block>
+</template>
 `
 
 export const RENDER_WXSS = `/* ============ 通用 ============ */
 .mp-ic { display: block; }
 .mp-fill { width: 100%; height: 100%; display: block; }
+.mp-link { display: block; }
+.mp-link-hover { opacity: .92; background: rgba(16,24,40,.02); }
 .mp-empty { border: 1rpx dashed #d5d9e2; border-radius: 20rpx; padding: 36rpx 0; text-align: center; color: #a6aebd; font-size: 24rpx; width: 100%; }
 .mp-flex { display: flex; }
 .mp-row { flex-direction: row; }

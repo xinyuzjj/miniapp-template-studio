@@ -12,6 +12,11 @@ export const useTheme = () => useContext(ThemeCtx)
 const SelCtx = createContext<{ selectedId?: string | null; onSelect?: (id: string) => void }>({})
 export const SelectProvider = SelCtx.Provider
 
+/** 预览态点击跳转的回调（由 PhoneFrame 注入） */
+const NavCtx = createContext<((path: string) => void) | undefined>(undefined)
+export const NavProvider = NavCtx.Provider
+export const useNav = () => useContext(NavCtx)
+
 function hash(s: string): number {
   let h = 0
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
@@ -29,8 +34,10 @@ function seedOf(node: MpNode): number {
 export function NodeRenderer({ node, editable = false, isLast = false }: { node: MpNode; editable?: boolean; isLast?: boolean }) {
   const theme = useTheme()
   const sel = useContext(SelCtx)
+  const nav = useContext(NavCtx)
   const def = REGISTRY[node.type]
   const selected = sel.selectedId === node.id
+  const linkTo = node.link?.to || ''
 
   const outer = styleToCss(node.style)
   if (isLast && node.type === 'cartBar') {
@@ -39,7 +46,24 @@ export function NodeRenderer({ node, editable = false, isLast = false }: { node:
 
   const inner = renderBody(node, theme, seedOf(node))
 
-  if (!editable) return <div style={outer}>{inner}</div>
+  if (!editable) {
+    const clickable = !!linkTo && !!nav
+    return (
+      <div
+        style={{ ...outer, cursor: clickable ? 'pointer' : undefined }}
+        onClick={
+          clickable
+            ? (e) => {
+                e.stopPropagation()
+                nav!(linkTo)
+              }
+            : undefined
+        }
+      >
+        {inner}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -64,13 +88,33 @@ export function NodeRenderer({ node, editable = false, isLast = false }: { node:
         }}
         className={selected ? '' : 'group-hover:outline group-hover:outline-1 group-hover:outline-brand-300'}
       />
-      {selected && <NodeBadge label={def?.name ?? node.type} />}
+      {selected && <NodeBadge label={def?.name ?? node.type} linkTo={linkTo} />}
+      {linkTo ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: -20,
+            right: 0,
+            background: '#10b981',
+            color: '#fff',
+            fontSize: 11,
+            lineHeight: '18px',
+            padding: '0 6px',
+            borderRadius: 4,
+            zIndex: 30,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+          }}
+        >
+          🔗 已绑定跳转
+        </div>
+      ) : null}
       {inner}
     </div>
   )
 }
 
-function NodeBadge({ label }: { label: string }) {
+function NodeBadge({ label, linkTo }: { label: string; linkTo?: string }) {
   return (
     <div
       style={{
@@ -89,6 +133,7 @@ function NodeBadge({ label }: { label: string }) {
       }}
     >
       {label}
+      {linkTo ? `  ↗` : ''}
     </div>
   )
 }

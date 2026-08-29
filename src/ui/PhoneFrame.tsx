@@ -1,5 +1,5 @@
 import type { MpPage, MpProject } from '../types'
-import { NodeRenderer, ThemeProvider, SelectProvider } from '../render/NodeRenderer'
+import { NodeRenderer, ThemeProvider, SelectProvider, NavProvider } from '../render/NodeRenderer'
 import { Icon } from '../render/primitives'
 import { decorate } from '../core/palette'
 
@@ -122,6 +122,7 @@ export function PhoneFrame({
   selectedId,
   onSelect,
   onSwitchPage,
+  onNavigate,
 }: {
   project: MpProject
   page: MpPage
@@ -131,34 +132,37 @@ export function PhoneFrame({
   selectedId?: string | null
   onSelect?: (id: string) => void
   onSwitchPage?: (path: string) => void
+  onNavigate?: (path: string) => void
 }) {
   const nodes = decorate(page.nodes)
   return (
     <ThemeProvider value={project.theme}>
       <SelectProvider value={{ selectedId, onSelect }}>
-        <div className="phone-shell" style={{ width, height }}>
-          <div className="phone-notch" />
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: 34,
-              overflow: 'hidden',
-              background: page.background || project.theme.background,
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <StatusBar dark={page.navText !== 'white'} />
-            <NavBar title={page.navTitle} bg={page.navBg} textStyle={page.navText} />
-            <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 12 }} className="thin-scroll">
-              {nodes.map((n, i) => (
-                <NodeRenderer key={n.id} node={n} editable={editable} isLast={i === nodes.length - 1} />
-              ))}
+        <NavProvider value={onNavigate}>
+          <div className="phone-shell" style={{ width, height }}>
+            <div className="phone-notch" />
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 34,
+                overflow: 'hidden',
+                background: page.background || project.theme.background,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <StatusBar dark={page.navText !== 'white'} />
+              <NavBar title={page.navTitle} bg={page.navBg} textStyle={page.navText} />
+              <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 12 }} className="thin-scroll">
+                {nodes.map((n, i) => (
+                  <NodeRenderer key={n.id} node={n} editable={editable} isLast={i === nodes.length - 1} />
+                ))}
+              </div>
+              <TabBarView project={project} activePath={page.path} onSwitch={onSwitchPage} />
             </div>
-            <TabBarView project={project} activePath={page.path} onSwitch={onSwitchPage} />
           </div>
-        </div>
+        </NavProvider>
       </SelectProvider>
     </ThemeProvider>
   )

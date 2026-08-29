@@ -1,9 +1,48 @@
 import { create } from 'zustand'
 import type { MpNode, MpPage, MpProject, NodeStyle, Theme } from '../types'
 import { getTemplate } from '../templates'
-import { node as makeNode, uid } from '../core/registry'
+import { node as makeNode, uid, REGISTRY } from '../core/registry'
 
 const STORAGE_KEY = 'mp-template-studio:v1'
+const BLOCKS_KEY = 'mp-blocks:v1'
+
+/** 用户保存的可复用区块（本质是带新 id 的节点子树） */
+export interface Block {
+  id: string
+  name: string
+  icon: string
+  desc: string
+  /** 保存时的第一层节点（通常是一个容器，内含组合） */
+  nodes: MpNode[]
+}
+
+function cloneWithNewIds(n: MpNode): MpNode {
+  const c = JSON.parse(JSON.stringify(n)) as MpNode
+  const reid = (x: MpNode) => {
+    x.id = uid(x.type)
+    x.children?.forEach(reid)
+  }
+  reid(c)
+  return c
+}
+
+function loadBlocks(): Block[] {
+  try {
+    const raw = localStorage.getItem(BLOCKS_KEY)
+    const arr = raw ? (JSON.parse(raw) as Block[]) : []
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
+}
+
+function persistBlocks(blocks: Block[]) {
+  try {
+    localStorage.setItem(BLOCKS_KEY, JSON.stringify(blocks))
+  } catch {
+    /* ignore */
+  }
+}
 
 function clone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T
@@ -45,6 +84,10 @@ function removeFrom(nodes: MpNode[], id: string): boolean {
   return false
 }
 
+function countNodes(n: MpNode): number {
+  return 1 + (n.children?.reduce((s, c) => s + countNodes(c), 0) ?? 0)
+}
+
 /* ---------------- Store ---------------- */
 
 /** 模块级剪贴板，用于跨页面复制节点 */
@@ -55,7 +98,7 @@ interface State {
   project: MpProject | null
   currentPageId: string
   selectedId: string | null
-  leftTab: 'components' | 'layers' | 'pages'
+  leftTab: 'components' | 'layers' | 'pages' | 'blocks'
   rightTab: 'prop' | 'theme'
   codeOpen: boolean
   past: MpProject[]
@@ -73,6 +116,7 @@ interface State {
 
   updateNodeProps: (nodeId: string, patch: Record<string, any>) => void
   updateNodeStyle: (nodeId: string, patch: NodeStyle) => void
+  updateNodeLink: (nodeId: string, to: string) => void
   addNode: (type: string, parentId?: string | null, index?: number) => void
   duplicateNode: (nodeId: string) => void
   removeNode: (nodeId: string) => void
@@ -91,6 +135,12 @@ interface State {
   updateTheme: (patch: Partial<Theme>) => void
   updateTabBar: (patch: Partial<MpProject['tabBar']>) => void
   updateProject: (patch: Partial<MpProject>) => void
+
+  /* 自定义区块（可复用组合） */
+  blocks: Block[]
+  saveBlock: (name: string, nodeId: string) => void
+  insertBlock: (blockId: string, parentId?: string | null) => void
+  deleteBlock: (blockId: string) => void
 
   undo: () => void
   redo: () => void
@@ -123,6 +173,7 @@ export const useApp = create<State>((set, get) => {
     codeOpen: false,
     past: [],
     future: [],
+    blocks: loadBlocks(),
 
     goHome: () => set({ view: 'home' }),
 
@@ -181,6 +232,14 @@ export const useApp = create<State>((set, get) => {
         if (!page) return
         const n = findNode(page.nodes, nodeId)
         if (n) n.style = { ...n.style, ...patch }
+      }),
+
+    updateNodeLink: (nodeId, to) =>
+      commit((p) => {
+        const page = p.pages.find((x) => x.id === get().currentPageId)
+        if (!page) return
+        const n = findNode(page.nodes, nodeId)
+        if (n) n.link = to ? { to } : undefined
       }),
 
     addNode: (type, parentId, index) =>
@@ -364,6 +423,53 @@ export const useApp = create<State>((set, get) => {
       commit((p) => {
         Object.assign(p, patch)
       }),
+
+    /* ---------------- 自定义区块 ---------------- */
+
+    saveBlock: (name, nodeId) =>
+      commit((p) => {
+        const page = p.pages.find((x) => x.id === get().currentPageId)
+        if (!page) return
+        const n = findNode(page.nodes, nodeId)
+        if (!n) return
+        const def = REGISTRY[n.type]
+        const block: Block = {
+          id: uid('blk'),
+          name: name.trim() || def?.name || '自定义区块',
+          icon: def?.icon || 'layout',
+          desc: `${def?.name || n.type} · 含 ${countNodes(n)} 个节点`,
+          nodes: [cloneWithNewIds(n)],
+        }
+        const blocks = [...get().blocks, block]
+        set({ blocks })
+        persistBlocks(blocks)
+      }),
+
+    insertBlock: (blockId, parentId) =>
+      commit((p) => {
+        const block = get().blocks.find((b) => b.id === blockId)
+        if (!block) return
+        const page = p.pages.find((x) => x.id === get().currentPageId)
+        if (!page) return
+        const fresh = cloneWithNewIds(block.nodes[0])
+        if (parentId) {
+          const parent = findNode(page.nodes, parentId)
+          if (parent && parent.children) {
+            parent.children.push(fresh)
+            set({ selectedId: fresh.id })
+            return
+          }
+        }
+        const list = parentId ? listOf(page.nodes, parentId) : page.nodes
+        if (list) list.push(fresh)
+        set({ selectedId: fresh.id })
+      }),
+
+    deleteBlock: (blockId) => {
+      const blocks = get().blocks.filter((b) => b.id !== blockId)
+      set({ blocks })
+      persistBlocks(blocks)
+    },
 
     undo: () => {
       const { past, project, future } = get()

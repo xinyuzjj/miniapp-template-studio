@@ -108,6 +108,43 @@ your-miniapp/
 
 导出前会做一遍预编译：渐变色、特性列表拆行、标签拆分、星级数组、地图占位图等派生字段全部算好写进页面数据，**运行时不做任何字符串解析**。
 
+### 6. 组件联动：点击任意组件跳转到目标页
+
+在右侧属性面板「页面跳转」里，给任意组件选一个目标页面即可。导出后组件外层自动包一层 `<view class="mp-link" bindtap="onJump">`，运行时走 `utils/handlers.js` 的 `onJump`：
+
+- 目标页是 **tabBar 页面** → 自动 `wx.switchTab`
+- 目标页是 **普通页面** → 自动 `wx.navigateTo`，页面不存在时 `toast` 提示
+
+编辑器顶部有「编辑 / 体验」切换：切到「体验」模式后，在手机预览里直接点击组件就能验证跳转，不用先导出。
+
+### 7. 自定义组件模板：把组合存成可复用区块
+
+搭好一组组件（比如一个促销卡片），在属性面板点「保存为可复用区块」，起个名字即可。区块存进浏览器本地（localStorage），出现在左侧「区块」标签页：
+
+- **插入**：点区块上的「插入」把这套组合原样放回，自动生成新 id，不与原节点冲突
+- **删除**：不再需要的区块一键移除
+
+适合把高频复用的版式（头图 + 标题 + 按钮、商品三连卡等）沉淀下来，搭页面像搭积木。
+
+### 8. 导出前自检：代码校验 + 预览截图
+
+点顶栏「导出自检」打开弹窗，自动完成两件事：
+
+- **代码校验（类 ESLint）**：生成完整小程序代码，用 `new Function` 做 JS 语法解析、JSON 解析，并校验页面 / tabBar / 跳转目标 / WXML 模板引用的一致性，错误与建议分色列出。
+- **预览截图自检**：用 SVG `foreignObject` 把每个页面离线渲染成 PNG，无需第三方库、无跨域问题，可单张或打包下载对照审查。
+
+任一项不通过都会明确提示，避免「导出后才发现页面打不开」。
+
+### 9. 导出即可交互：所有按钮都能点
+
+导出的小程序里，每个按钮 / 卡片都是**活的**，不是摆设：
+
+- **已绑定跳转的组件**：点整张卡片即跳转到目标页（tabBar 页 `switchTab`，普通页 `navigateTo`）。
+- **未绑定跳转的 CTA**：点击会给出示例反馈（`toast` 或弹窗），明确告诉你「这里该接什么」——比如「下单 / 支付需接入后端与微信支付」。
+- **语义动作已分好类**：搜索、领取优惠券、立即购买 / 去结算（唤起支付接入提示）、拨号、导航、复制、表单提交等都有对应处理器，位于 `utils/handlers.js`，按业务改一处即可。
+
+> 想让某个按钮真正跳转？在编辑器右侧属性面板「页面跳转」选目标页，导出后该组件（及内部按钮）点击即跳。
+
 ---
 
 ## 📘 内置新手教程
@@ -160,7 +197,8 @@ npm run dev
 | `npm run build` | 生产构建到 `dist/` |
 | `npm run preview` | 预览生产构建 |
 | `npm run typecheck` | TypeScript 类型检查 |
-| `npm run smoke` | 冒烟测试：15 套模板全页渲染 + 34 组件渲染 + 代码生成校验 |
+| `npm run smoke` | 冒烟测试：15 套模板全页渲染 + 34 组件渲染 + 代码生成 + 联动 / 区块校验 |
+| `npm run selfcheck` | 导出产物自检（类 ESLint + 结构一致性），15 套模板全绿才放行 |
 | `npm run gen:sample` | 命令行直接生成一份样本小程序源码 |
 
 ---
@@ -249,15 +287,17 @@ src/
 │   └── primitives.tsx   # Icon / 渐变占位等原子件
 ├── export/
 │   ├── mpgen.ts         # 代码生成主流程 + 预编译
-│   ├── wxml.ts          # 递归 WXML 模板 + WXSS
+│   ├── wxml.ts          # 递归 WXML 模板 + WXSS（含 mp-link 跳转包裹）
 │   ├── icons.ts         # Canvas 出图
 │   ├── deploy.ts        # 部署脚本生成
+│   ├── selfcheck.ts     # 导出产物校验（类 ESLint + 结构一致性）
+│   ├── domCapture.ts    # 页面离线截图（SVG foreignObject → PNG）
 │   └── zip.ts           # 打包下载
 ├── templates/
 │   ├── defs.ts / defsB.ts  # 15 套模板定义
 │   └── kit.ts              # 模板搭建辅助函数
 ├── store/useApp.ts      # zustand：历史记录 / 剪贴板 / 页面操作
-└── ui/                  # 编辑器界面
+└── ui/                  # 编辑器界面（含 SelfCheckModal.tsx 导出自检弹窗）
 ```
 
 ---
@@ -270,16 +310,63 @@ src/
 - `REGISTRY` 里 34 个组件类型逐个渲染
 - 生成的页面 JS 中不含 `undefined`
 - 编辑器面板、store 操作、本地持久化路径可用
+- 组件联动（跳转目标写入 `link`、导出 `onJump` / `mp-link` / `tabPages`）、tabBar 用 `switchTab`
+- 自定义区块（保存 / 插入 / 删除）、导出自检（正常项目通过、非法跳转目标被捕获）
 
-CI（GitHub Actions）在每次 push 时跑 `typecheck` → `smoke` → `build`，全绿才发布到 Pages。
+CI（GitHub Actions）在每次 push 时跑 `typecheck` → `smoke` → `selfcheck` → `build`，全绿才发布到 Pages。
+
+---
+
+## 💳 如何接入支付 / 后端
+
+本工具生成的是**前端骨架**，业务逻辑（下单、支付、搜索、表单落库）需要你自己的服务端。所有交互入口都集中在 `utils/handlers.js`，按下面三步接即可。
+
+**① 微信支付（必须走后端，无法纯前端完成）**
+
+```
+前端点击「立即购买 / 去结算」→ handlers.js 的 onPay() 先弹出接入说明
+   ↓ 你实现后改成：
+wx.request({ url: 'https://你的域名/api/order', method: 'POST', data: 购物车,
+  success: (res) => {
+    // res.data 来自你的服务端调用微信「统一下单」接口
+    wx.requestPayment({
+      timeStamp: res.data.timeStamp,
+      nonceStr: res.data.nonceStr,
+      package: res.data.package,      // 形如 "prepay_id=xxx"
+      signType: 'MD5',
+      paySign: res.data.paySign,
+      success() { wx.showToast({ title: '支付成功' }) },
+      fail() { wx.showToast({ title: '已取消' }) },
+    })
+  }
+})
+```
+
+前置条件（都在微信公众平台 / 微信支付商户平台配置，与本工具无关）：
+
+- 小程序 **AppID** + 微信支付 **商户号（mch_id）** + **API 密钥 / APIv3 密钥**
+- 服务端用商户号调微信「统一下单 / JSAPI」拿到 `prepay_id`，再按规则签名返回前端
+- 正式支付需**已认证的小程序 + 微信支付资质**；测试阶段可先用 `onPay()` 的弹窗占位
+
+**② 表单 / 搜索 / 其他接口**
+
+`handlers.js` 里 `onSubmit` 已 `setData` 收集好 `this.data.form`（每个字段 `form.f0 / f1 …`）。接后端只需在 `onSubmit` 里 `wx.request` 把 `this.data.form` POST 出去；`onTap` 里 `action === 'search'` 分支同理改成请求你的搜索接口。
+
+**③ 商品 / 文章内容**
+
+模板里的商品、文章、价格都是**静态示例数据**（在 `src/templates` 里）。要动态，把 `utils/handlers.js` 的 `onLoad` 改成 `wx.request` 拉你的列表接口，再 `setData({ nodes: ... })` 覆盖默认 `NODES` 即可。
+
+> 总结：本工具负责「页面 + 交互骨架 + 跳转」，你负责「数据 + 支付 + 业务逻辑」。两者在 `handlers.js` 一处接缝，不耦合。
 
 ---
 
 ## 🗺 Roadmap
 
-- [ ] 组件联动与页面跳转配置（属性面板里选目标页）
-- [ ] 自定义组件模板（用户保存自己的组合为可复用区块）
-- [ ] 导出产物的 ESLint / 预览截图自检
+- [x] 组件联动与页面跳转配置（属性面板里选目标页）
+- [x] 自定义组件模板（用户保存自己的组合为可复用区块）
+- [x] 导出产物的 ESLint / 预览截图自检
+- [x] 导出即交互：所有按钮可点（跳转 / 示例反馈 / 支付接入点）
+- [x] 支付 / 后端接入方法论（handlers.js 一处接缝）
 - [ ] 云端草稿同步（当前为浏览器本地持久化）
 
 ---

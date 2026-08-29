@@ -142,6 +142,13 @@ function EditorTab() {
       <div className="rounded-xl bg-ink-50 border border-ink-100 p-4 text-[12.5px] text-ink-600 leading-relaxed">
         <b className="text-ink-800">💡 快捷键</b>：选中组件后，<Pill>Ctrl/Cmd+D</Pill> 复制、<Pill>Ctrl/Cmd+C/V</Pill> 跨页复制粘贴、<Pill>↑/↓</Pill> 上下移动、<Pill>Delete</Pill> 删除、<Pill>Ctrl/Cmd+Z</Pill> 撤销。
       </div>
+
+      <div className="rounded-xl bg-brand-50/60 border border-brand-100 p-4 text-[12.5px] text-ink-600 leading-relaxed space-y-1.5">
+        <b className="text-brand-800">进阶玩法</b>
+        <p>· <b>组件联动</b>：右侧属性面板「页面跳转」选目标页，导出后点击组件即可跳转（tabBar 页自动 switchTab）。顶部切到「体验」模式，可在预览里直接点测跳转。</p>
+        <p>· <b>可复用区块</b>：在属性面板「保存为可复用区块」，把一组组件沉淀到左侧「区块」标签，随时一键插回页面，自动换新 id 不冲突。</p>
+        <p>· <b>导出自检</b>：点顶栏「导出自检」自动做代码校验（类 ESLint）+ 各页预览截图，导出前先排雷。</p>
+      </div>
     </div>
   )
 }
@@ -176,6 +183,8 @@ function FaqTab() {
     ['提示「未检测到微信开发者工具」？', '请先安装微信开发者工具（developers.weixin.qq.com/miniprogram/dev/devtools/download.html），装好重新双击脚本即可。'],
     ['域名校验报错？', '开发者工具右上角「详情」→「本地设置」→ 勾选「不校验合法域名」。'],
     ['想接自己的后端 / 接口？', '在导出包的 utils/handlers.js 里（如 onSubmit）调用 wx.request 即可。'],
+    ['导出的按钮点了没反应？', '未配置跳转的按钮会给出示例提示（如「下单需接入后端与微信支付」）。想让按钮真正跳转：在编辑器选中组件 → 右侧「页面跳转」选目标页，导出后点击即跳；或改导出包 utils/handlers.js 的 onTap / onSubmit 接你自己的逻辑。'],
+    ['怎么接入微信支付？', '支付必须走你自己的服务端：前端下单 → 服务端调微信「统一下单」拿 prepay_id → 返回签名给前端 → wx.requestPayment。handlers.js 已留 onPay() 接入点，详见仓库 README「如何接入支付 / 后端」。纯前端无法完成支付。'],
     ['数据会传到服务器吗？', '不会。整个工具跑在浏览器里，导出用 JSZip 在本地打包，项目数据只存在你本机 localStorage。'],
   ]
   return (

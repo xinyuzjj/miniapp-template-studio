@@ -29,6 +29,8 @@ export interface MpNode {
   props: Record<string, any>
   style: NodeStyle
   children?: MpNode[]
+  /** 点击跳转：跳转到目标页面路径（pages/xxx/index）。留空表示不跳转 */
+  link?: { to: string }
 }
 
 export interface TabBarItem {

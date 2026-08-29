@@ -16,6 +16,7 @@ export default function Editor() {
   const selectedId = useApp((s) => s.selectedId)
   const [zen, setZen] = useState(false)
   const [zoom, setZoom] = useState(1)
+  const [preview, setPreview] = useState(false)
 
   // 退出专注模式（由教程引导触发，确保左右面板可见）
   useEffect(() => {
@@ -105,6 +106,24 @@ export default function Editor() {
               <span>375 × 760</span>
             </div>
             <div className="flex items-center gap-1">
+              <div className="flex items-center rounded-lg bg-ink-100/70 p-0.5 mr-1">
+                <button
+                  onClick={() => setPreview(false)}
+                  className={`h-7 px-2.5 rounded-md text-[12px] font-medium transition ${
+                    !preview ? 'bg-white text-brand-600 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                  }`}
+                >
+                  编辑
+                </button>
+                <button
+                  onClick={() => setPreview(true)}
+                  className={`h-7 px-2.5 rounded-md text-[12px] font-medium transition ${
+                    preview ? 'bg-white text-brand-600 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                  }`}
+                >
+                  体验
+                </button>
+              </div>
               <button
                 onClick={() => setZoom(Math.max(0.6, +(zoom - 0.1).toFixed(2)))}
                 className="w-7 h-7 rounded-lg bg-white border border-ink-100 text-ink-500 inline-flex items-center justify-center hover:border-brand-300"
@@ -130,10 +149,11 @@ export default function Editor() {
                 <PhoneFrame
                   project={project}
                   page={page}
-                  editable
+                  editable={!preview}
                   selectedId={selectedId}
                   onSelect={(id) => select(id)}
                   onSwitchPage={switchByPath}
+                  onNavigate={preview ? switchByPath : undefined}
                 />
               </div>
             </div>

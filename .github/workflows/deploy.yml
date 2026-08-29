@@ -38,6 +38,9 @@ jobs:
       - name: Smoke test
         run: npm run smoke
 
+      - name: Export self-check
+        run: npm run selfcheck
+
       - name: Build
         run: npm run build
 
