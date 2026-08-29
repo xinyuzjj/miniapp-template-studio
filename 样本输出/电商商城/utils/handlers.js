@@ -21,6 +21,20 @@ module.exports = {
     wx.showToast({ title: '提交成功', icon: 'success' })
   },
 
+  onFab: function (e) {
+    var action = e.currentTarget.dataset.action || 'none'
+    var phone = e.currentTarget.dataset.phone || ''
+    if (action === 'call' && phone) {
+      wx.makePhoneCall({ phoneNumber: phone.replace(/[^0-9\-]/g, ''), fail: function () {} })
+    } else if (action === 'top') {
+      wx.pageScrollTo({ scrollTop: 0, duration: 300 })
+    } else if (action === 'share') {
+      wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'], fail: function () {} })
+    } else {
+      wx.showToast({ title: '更多功能开发中', icon: 'none' })
+    }
+  },
+
   onNavigate: function (e) {
     var d = e.currentTarget.dataset
     if (typeof d.lat === 'undefined' || d.lat === '') return

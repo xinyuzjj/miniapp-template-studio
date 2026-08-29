@@ -4,7 +4,7 @@ const H = require('../../utils/handlers.js')
 
 const NODES = [
     {
-      "id": "view_mte3zxix_r",
+      "id": "view_mteaoyz5_r",
       "type": "view",
       "props": {
         "direction": "column",
@@ -17,7 +17,7 @@ const NODES = [
       "_r": 0,
       "children": [
         {
-          "id": "stats_mte3zxix_l",
+          "id": "stats_mteaoyz5_l",
           "type": "stats",
           "props": {
             "items": [
@@ -62,7 +62,7 @@ const NODES = [
           "_r": 14
         },
         {
-          "id": "shop_mte3zxix_m",
+          "id": "shop_mteaoyz5_m",
           "type": "shop",
           "props": {
             "name": "您好，欢迎回来",
@@ -83,7 +83,7 @@ const NODES = [
           "_r": 14
         },
         {
-          "id": "grid_mte3zxix_n",
+          "id": "grid_mteaoyz5_n",
           "type": "grid",
           "props": {
             "items": [
@@ -164,7 +164,7 @@ const NODES = [
           "_r": 14
         },
         {
-          "id": "banner_mte3zxix_o",
+          "id": "banner_mteaoyz5_o",
           "type": "banner",
           "props": {
             "image": "",
@@ -179,7 +179,7 @@ const NODES = [
           "_r": 12
         },
         {
-          "id": "contact_mte3zxix_p",
+          "id": "contact_mteaoyz5_p",
           "type": "contact",
           "props": {
             "items": [
@@ -228,7 +228,7 @@ const NODES = [
           "_r": 14
         },
         {
-          "id": "footer_mte3zxix_q",
+          "id": "footer_mteaoyz5_q",
           "type": "footer",
           "props": {
             "text": "© 2026 示例科技有限公司 · 沪ICP备00000000号",

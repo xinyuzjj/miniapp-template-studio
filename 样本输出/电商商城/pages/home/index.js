@@ -4,7 +4,7 @@ const H = require('../../utils/handlers.js')
 
 const NODES = [
     {
-      "id": "search_mte3zxix_1",
+      "id": "search_mteaoyz4_1",
       "type": "search",
       "props": {
         "placeholder": "搜索 连衣裙 / 数码 / 家居",
@@ -19,7 +19,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "swiper_mte3zxix_2",
+      "id": "swiper_mteaoyz5_2",
       "type": "swiper",
       "props": {
         "items": [
@@ -62,7 +62,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "grid_mte3zxix_3",
+      "id": "grid_mteaoyz5_3",
       "type": "grid",
       "props": {
         "items": [
@@ -151,7 +151,7 @@ const NODES = [
       "_r": 14
     },
     {
-      "id": "coupon_mte3zxix_4",
+      "id": "coupon_mteaoyz5_4",
       "type": "coupon",
       "props": {
         "items": [
@@ -197,7 +197,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "seckill_mte3zxix_5",
+      "id": "seckill_mteaoyz5_5",
       "type": "seckill",
       "props": {
         "title": "限时秒杀",
@@ -255,7 +255,7 @@ const NODES = [
       "_r": 14
     },
     {
-      "id": "title_mte3zxix_6",
+      "id": "title_mteaoyz5_6",
       "type": "title",
       "props": {
         "content": "为你推荐",
@@ -273,7 +273,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "goods_mte3zxix_7",
+      "id": "goods_mteaoyz5_7",
       "type": "goods",
       "props": {
         "layout": "grid",
@@ -344,7 +344,7 @@ const NODES = [
       "_r": 0
     },
     {
-      "id": "serviceBar_mte3zxix_8",
+      "id": "serviceBar_mteaoyz5_8",
       "type": "serviceBar",
       "props": {
         "items": [
@@ -388,7 +388,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "footer_mte3zxix_9",
+      "id": "footer_mteaoyz5_9",
       "type": "footer",
       "props": {
         "text": "© 2026 示例科技有限公司 · 沪ICP备00000000号",

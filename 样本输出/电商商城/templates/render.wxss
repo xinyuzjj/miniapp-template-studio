@@ -16,6 +16,8 @@
 .mp-text { white-space: pre-wrap; word-break: break-all; }
 .mp-img { width: 100%; display: block; }
 .mp-caption { font-size: 24rpx; text-align: center; margin-top: 12rpx; }
+.mp-video { width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.mp-video .mp-ic { opacity: .92; }
 
 /* ============ 导航 ============ */
 .mp-search { display: flex; align-items: center; gap: 12rpx; padding: 0 28rpx; }
@@ -38,6 +40,13 @@
 .mp-tab { display: inline-block; position: relative; padding: 0 18rpx 12rpx; font-size: 28rpx; }
 .mp-tab.on { font-size: 30rpx; }
 .mp-tab-line { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 40rpx; height: 6rpx; border-radius: 3rpx; }
+.mp-fab { position: fixed; z-index: 60; }
+.mp-fab-br { right: 26rpx; bottom: calc(48rpx + env(safe-area-inset-bottom)); }
+.mp-fab-bl { left: 26rpx; bottom: calc(48rpx + env(safe-area-inset-bottom)); }
+.mp-fab-tr { right: 26rpx; top: 44rpx; }
+.mp-fab-tl { left: 26rpx; top: 44rpx; }
+.mp-fab-btn { display: inline-flex; align-items: center; gap: 8rpx; padding: 18rpx 30rpx; border-radius: 999rpx; color: #fff; font-size: 26rpx; font-weight: 600; box-shadow: 0 6rpx 18rpx rgba(16,24,40,.22); }
+.mp-fab-tx { font-size: 26rpx; }
 
 /* ============ 营销 ============ */
 .mp-coupons { white-space: nowrap; width: 100%; }
@@ -134,6 +143,18 @@
 .mp-pcard-btn { margin-top: 24rpx; text-align: center; font-size: 24rpx; font-weight: 600; padding: 14rpx 0; border-radius: 40rpx; }
 
 /* ============ 内容 ============ */
+.mp-rich { font-size: 26rpx; line-height: 1.7; color: #5b6472; padding: 24rpx 28rpx; }
+.mp-rich image, .mp-rich img { max-width: 100%; border-radius: 12rpx; }
+.mp-rich view, .mp-rich text, .mp-rich p, .mp-rich div { line-height: 1.7; }
+.mp-rich h1 { font-size: 38rpx; font-weight: 700; color: #1a1d28; margin: 4rpx 0 16rpx; }
+.mp-rich h2 { font-size: 34rpx; font-weight: 700; color: #1a1d28; margin: 4rpx 0 14rpx; }
+.mp-rich h3 { font-size: 30rpx; font-weight: 600; color: #1a1d28; margin: 4rpx 0 12rpx; }
+.mp-rich h4 { font-size: 28rpx; font-weight: 600; color: #1a1d28; margin: 4rpx 0 10rpx; }
+.mp-rich p { margin: 0 0 14rpx; }
+.mp-rich a { color: #3459f7; }
+.mp-rich ul { padding-left: 36rpx; margin: 0 0 14rpx; }
+.mp-rich li { margin: 6rpx 0; }
+.mp-rich b, .mp-rich strong { font-weight: 700; color: #1a1d28; }
 .mp-articles { border-radius: 24rpx; overflow: hidden; }
 .mp-article { display: flex; gap: 20rpx; padding: 24rpx; border-bottom: 1rpx solid #f2f4f7; }
 .mp-article:last-child { border-bottom: none; }

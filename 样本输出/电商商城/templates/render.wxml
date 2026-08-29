@@ -30,6 +30,13 @@
     <view wx:if="{{node.props.caption}}" class="mp-caption" style="color:{{T.subText}}">{{node.props.caption}}</view>
   </view>
 
+  <view wx:elif="{{node.type === 'video'}}" style="{{node._s}}">
+    <video wx:if="{{node.props.src}}" src="{{node.props.src}}" poster="{{node.props.poster}}" controls="{{node.props.controls !== false}}" autoplay="{{node.props.autoplay}}" style="width:100%;height:{{node.props.height * 2}}rpx;border-radius:{{node.props.radius * 2}}rpx"></video>
+    <view wx:else class="mp-video" style="height:{{node.props.height * 2}}rpx;border-radius:{{node.props.radius * 2}}rpx;background:linear-gradient(135deg,{{node._g1}},{{node._g2}})">
+      <image src="/images/icons/w_play.png" class="mp-ic" style="width:52rpx;height:52rpx"/>
+    </view>
+  </view>
+
   <view wx:elif="{{node.type === 'divider'}}" style="{{node._s}}">
     <view style="height:0;border-top:{{node.props.height}}px {{node.props.dashed ? 'dashed' : 'solid'}} {{node.props.color}}"></view>
   </view>
@@ -86,6 +93,13 @@
         <view wx:if="{{index === node.props.active}}" class="mp-tab-line" style="background:{{node.props.activeColor || T.primary}}"></view>
       </view>
     </scroll-view>
+  </view>
+
+  <view wx:elif="{{node.type === 'floatBtn'}}" class="mp-fab mp-fab-{{node.props.position}}" style="{{node._s}}">
+    <view class="mp-fab-btn" style="background:{{node.props.bg || T.primary}}" bindtap="onFab" data-action="{{node.props.action}}" data-phone="{{node.props.phone}}">
+      <image src="/images/icons/w_{{node.props.icon}}.png" class="mp-ic" style="width:36rpx;height:36rpx"/>
+      <text wx:if="{{node.props.text}}" class="mp-fab-tx">{{node.props.text}}</text>
+    </view>
   </view>
 
   <!-- ============ 营销 ============ -->
@@ -268,6 +282,10 @@
   </view>
 
   <!-- ============ 内容 ============ -->
+  <view wx:elif="{{node.type === 'richText'}}" style="{{node._s}};background:{{node.props.background}};border-radius:{{node.props.radius * 2}}rpx">
+    <rich-text class="mp-rich" nodes="{{node.props.html}}"></rich-text>
+  </view>
+
   <view wx:elif="{{node.type === 'article'}}" style="{{node._s}};background:{{T.cardBg}}">
     <view class="mp-articles">
       <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-article">

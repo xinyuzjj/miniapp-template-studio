@@ -4,7 +4,7 @@ const H = require('../../utils/handlers.js')
 
 const NODES = [
     {
-      "id": "search_mte3zxix_a",
+      "id": "search_mteaoyz5_a",
       "type": "search",
       "props": {
         "placeholder": "搜索商品",
@@ -19,7 +19,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "grid_mte3zxix_b",
+      "id": "grid_mteaoyz5_b",
       "type": "grid",
       "props": {
         "items": [
@@ -116,7 +116,7 @@ const NODES = [
       "_r": 14
     },
     {
-      "id": "title_mte3zxix_c",
+      "id": "title_mteaoyz5_c",
       "type": "title",
       "props": {
         "content": "热门榜单",
@@ -134,7 +134,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "goods_mte3zxix_d",
+      "id": "goods_mteaoyz5_d",
       "type": "goods",
       "props": {
         "layout": "list",
@@ -205,7 +205,7 @@ const NODES = [
       "_r": 0
     },
     {
-      "id": "footer_mte3zxix_e",
+      "id": "footer_mteaoyz5_e",
       "type": "footer",
       "props": {
         "text": "© 2026 示例科技有限公司 · 沪ICP备00000000号",

@@ -4,7 +4,7 @@ const H = require('../../utils/handlers.js')
 
 const NODES = [
     {
-      "id": "notice_mte3zxix_f",
+      "id": "notice_mteaoyz5_f",
       "type": "notice",
       "props": {
         "text": "🎉 满 299 减 50，再凑 ¥68 即可享受",
@@ -19,7 +19,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "goods_mte3zxix_g",
+      "id": "goods_mteaoyz5_g",
       "type": "goods",
       "props": {
         "layout": "list",
@@ -76,7 +76,7 @@ const NODES = [
       "_r": 14
     },
     {
-      "id": "coupon_mte3zxix_h",
+      "id": "coupon_mteaoyz5_h",
       "type": "coupon",
       "props": {
         "items": [
@@ -100,7 +100,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "title_mte3zxix_i",
+      "id": "title_mteaoyz5_i",
       "type": "title",
       "props": {
         "content": "你可能还想要",
@@ -118,7 +118,7 @@ const NODES = [
       "_r": 12
     },
     {
-      "id": "goods_mte3zxix_j",
+      "id": "goods_mteaoyz5_j",
       "type": "goods",
       "props": {
         "layout": "row",
@@ -175,7 +175,7 @@ const NODES = [
       "_r": 0
     },
     {
-      "id": "cartBar_mte3zxix_k",
+      "id": "cartBar_mteaoyz5_k",
       "type": "cartBar",
       "props": {
         "total": "￥756.00",

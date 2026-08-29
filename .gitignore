@@ -5,6 +5,9 @@ node_modules/
 dist/
 tmp-out/
 
+# Release 上传用的临时压缩包（由 scripts/regen-sample.tsx 生成，仅用于上传，不入库）
+release-assets/
+
 # 脚本临时产物
 scripts/.*.cjs
 
