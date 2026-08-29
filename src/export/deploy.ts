@@ -162,6 +162,77 @@ echo "注意：上传需要正式 AppID，测试号无法上传。"
 `
 }
 
+function previewQrBat(name: string): string {
+  return `@echo off
+chcp 65001 >nul
+setlocal EnableDelayedExpansion
+title ${name} · 生成预览二维码
+
+:: === 定位微信开发者工具 CLI ===
+${detectWin()}
+
+if not defined CLI (
+  echo.
+  echo [错误] 未检测到微信开发者工具，请先安装：
+  echo https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html
+  echo.
+  pause
+  exit /b 1
+)
+
+set "ROOT=%~dp0"
+set "QR=%ROOT%preview-qr.png"
+
+echo.
+echo 正在生成预览二维码...
+echo 提示：首次使用请先在微信开发者工具里用微信扫码登录一次。
+echo.
+
+"%CLI%" preview --project "%ROOT%" --qr "%QR%"
+
+if exist "%QR%" (
+  echo.
+  echo ============================================================
+  echo  二维码已生成：preview-qr.png
+  echo  用手机微信「扫一扫」即可在真机上预览（无需 AppID）。
+  echo ============================================================
+  start "" "%QR%"
+) else (
+  echo.
+  echo [提示] 未生成二维码。请先在微信开发者工具登录个人微信后重试，
+  echo  或在工具顶部点「预览」手动生成二维码。
+)
+echo.
+pause
+`
+}
+
+function previewQrSh(name: string): string {
+  return `#!/bin/bash
+set -e
+echo "== ${name} · 生成预览二维码 =="
+
+${detectSh()}
+
+if [ -z "$CLI" ]; then
+  echo "未检测到微信开发者工具，请先安装："
+  echo "https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html"
+  exit 1
+fi
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+QR="$ROOT/preview-qr.png"
+echo "正在生成预览二维码..."
+"$CLI" preview --project "$ROOT" --qr "$QR" || true
+if [ -f "$QR" ]; then
+  echo "二维码已生成：$QR —— 用手机微信扫码即可真机预览（无需 AppID）。"
+  open "$QR" 2>/dev/null || true
+else
+  echo "未生成二维码。请先在微信开发者工具登录个人微信后重试，或点顶部「预览」手动生成。"
+fi
+`
+}
+
 function guideTxt(name: string, desc: string): string {
   return `小程序一键部署 · 使用说明
 ============================
@@ -186,6 +257,11 @@ function guideTxt(name: string, desc: string): string {
 
 想直接上传体验版？
   用正式 AppID 时，双击「上传体验版.bat / .sh」一步到位。
+
+想用手机扫码看真机效果（免 AppID）？
+  双击「预览二维码.bat / .sh」，脚本会自动生成一张二维码图片并打开，
+  用手机微信「扫一扫」即可预览。前提：你本人在微信开发者工具里
+  登录过个人微信（免费账号，不是 AppID）。
 
 常见问题
 --------
@@ -222,6 +298,8 @@ export function buildDeployScripts(p: MpProject): GenFile[] {
   return [
     { path: '一键部署.bat', content: BOM + openBat(name) },
     { path: '一键部署.sh', content: openSh(name) },
+    { path: '预览二维码.bat', content: BOM + previewQrBat(name) },
+    { path: '预览二维码.sh', content: previewQrSh(name) },
     { path: '上传体验版.bat', content: BOM + uploadBat(name, desc) },
     { path: '上传体验版.sh', content: uploadSh(name, desc) },
     { path: '部署说明.txt', content: BOM + guideTxt(name, desc) },

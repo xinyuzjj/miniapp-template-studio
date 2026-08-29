@@ -4,7 +4,8 @@ import { generateCodeFiles, collectIcons } from '../export/mpgen'
 import { generateComponentIcons, generateTabIcons } from '../export/icons'
 import { buildDeployScripts } from '../export/deploy'
 import { buildZip, downloadBlob } from '../export/zip'
-import { ArrowLeft, Undo2, Redo2, Code2, Download, Rocket, Loader2, Eye, EyeOff, CheckCircle2, X } from 'lucide-react'
+import { ArrowLeft, Undo2, Redo2, Code2, Download, Rocket, Loader2, Eye, EyeOff, CheckCircle2, X, BookOpen } from 'lucide-react'
+import { openTutorialCenter } from './Tutorial'
 
 export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: boolean) => void }) {
   const project = useApp((s) => s.project)!
@@ -99,7 +100,14 @@ export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: bool
         ))}
       </div>
 
-      <div className="flex items-center gap-1.5 flex-shrink-0">
+      <div id="tour-actions" className="flex items-center gap-1.5 flex-shrink-0">
+        <button
+          onClick={openTutorialCenter}
+          title="新手教程"
+          className="h-8 px-3 rounded-lg border border-ink-200 text-ink-600 text-[12.5px] inline-flex items-center gap-1.5 hover:border-brand-400 hover:text-brand-600 transition"
+        >
+          <BookOpen size={14} /> 教程
+        </button>
         <button
           onClick={() => setZen(!zen)}
           title={zen ? '显示编辑面板' : '进入全屏预览'}

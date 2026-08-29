@@ -6,6 +6,7 @@ import RightPanel from './RightPanel'
 import CodeModal from './CodeModal'
 import { PhoneFrame } from './PhoneFrame'
 import { Minus, Plus, Smartphone } from 'lucide-react'
+import { shouldAutoTour, startGuidedTour } from './Tutorial'
 
 export default function Editor() {
   const project = useApp((s) => s.project)
@@ -15,6 +16,21 @@ export default function Editor() {
   const selectedId = useApp((s) => s.selectedId)
   const [zen, setZen] = useState(false)
   const [zoom, setZoom] = useState(1)
+
+  // 退出专注模式（由教程引导触发，确保左右面板可见）
+  useEffect(() => {
+    const off = () => setZen(false)
+    window.addEventListener('mp:exit-zen', off)
+    return () => window.removeEventListener('mp:exit-zen', off)
+  }, [])
+
+  // 首次进入编辑器自动播放引导
+  useEffect(() => {
+    if (shouldAutoTour()) {
+      const t = setTimeout(() => startGuidedTour(), 450)
+      return () => clearTimeout(t)
+    }
+  }, [])
 
   if (!project || !page) {
     return (
@@ -78,7 +94,7 @@ export default function Editor() {
       <div className="flex-1 flex min-h-0">
         {!zen ? <LeftPanel /> : null}
 
-        <main className="flex-1 min-w-0 flex flex-col min-h-0">
+        <main id="tour-canvas" className="flex-1 min-w-0 flex flex-col min-h-0">
           <div className="h-11 flex items-center justify-between px-5 flex-shrink-0">
             <div className="flex items-center gap-2 text-[12px] text-ink-500">
               <Smartphone size={14} className="text-ink-400" />

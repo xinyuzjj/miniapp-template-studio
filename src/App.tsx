@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useApp } from './store/useApp'
 import Home from './ui/Home'
 import Editor from './ui/Editor'
+import { TutorialRoot } from './ui/Tutorial'
 
 export default function App() {
   const view = useApp((s) => s.view)
@@ -12,5 +13,10 @@ export default function App() {
     restore()
   }, [restore])
 
-  return view === 'home' ? <Home /> : <Editor />
+  return (
+    <>
+      {view === 'home' ? <Home /> : <Editor />}
+      <TutorialRoot />
+    </>
+  )
 }

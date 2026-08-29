@@ -108,6 +108,7 @@ function ThemePanel() {
   const project = useApp((s) => s.project)!
   const updateTheme = useApp((s) => s.updateTheme)
   const updateTabBar = useApp((s) => s.updateTabBar)
+  const updateProject = useApp((s) => s.updateProject)
   const updatePage = useApp((s) => s.updatePage)
   const page = useCurrentPage()
   const t = project.theme
@@ -281,6 +282,22 @@ function ThemePanel() {
           </div>
         </div>
       ) : null}
+
+      <div className="mt-5 pt-4 border-t border-ink-100">
+        <div className="text-[11.5px] font-semibold text-ink-600 mb-3">发布设置（AppID）</div>
+        <label className="block mb-2.5">
+          <span className="block text-[11px] text-ink-500 mb-1">AppID（可选）</span>
+          <input
+            value={project.appid === 'touristappid' ? '' : project.appid}
+            onChange={(e) => updateProject({ appid: e.target.value.trim() })}
+            placeholder="留空 = 测试号（免 AppID 预览）"
+            className="w-full h-8 px-2.5 rounded-lg border border-ink-200 bg-white text-[12.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </label>
+        <div className="text-[11px] text-ink-400 leading-relaxed">
+          预览 / 真机扫码用测试号即可，<b className="text-ink-500">无需 AppID</b>。仅正式发布需填你自己的小程序 AppID。
+        </div>
+      </div>
     </div>
   )
 }
@@ -300,7 +317,7 @@ export default function RightPanel() {
   const hasClipboard = useApp((s) => s.hasClipboard())
 
   return (
-    <aside className="w-[330px] border-l border-ink-100 bg-white flex flex-col min-h-0">
+    <aside id="tour-right" className="w-[330px] border-l border-ink-100 bg-white flex flex-col min-h-0">
       <div className="flex border-b border-ink-100 flex-shrink-0">
         <button
           onClick={() => setRightTab('prop')}

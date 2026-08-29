@@ -304,7 +304,7 @@ export default function LeftPanel() {
   ]
 
   return (
-    <aside className="w-[286px] border-r border-ink-100 bg-white flex flex-col min-h-0">
+    <aside id="tour-left" className="w-[286px] border-r border-ink-100 bg-white flex flex-col min-h-0">
       <div className="flex border-b border-ink-100 flex-shrink-0">
         {tabs.map((t) => (
           <button

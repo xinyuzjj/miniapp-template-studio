@@ -90,6 +90,7 @@ interface State {
 
   updateTheme: (patch: Partial<Theme>) => void
   updateTabBar: (patch: Partial<MpProject['tabBar']>) => void
+  updateProject: (patch: Partial<MpProject>) => void
 
   undo: () => void
   redo: () => void
@@ -357,6 +358,11 @@ export const useApp = create<State>((set, get) => {
     updateTabBar: (patch) =>
       commit((p) => {
         p.tabBar = { ...p.tabBar, ...patch }
+      }),
+
+    updateProject: (patch) =>
+      commit((p) => {
+        Object.assign(p, patch)
       }),
 
     undo: () => {

@@ -4,7 +4,8 @@ import type { MpProject, TemplateDef } from '../types'
 import { useApp } from '../store/useApp'
 import { PhoneFrame } from './PhoneFrame'
 import { Icon } from '../render/primitives'
-import { Sparkles, Boxes, Download, MonitorSmartphone, X, Search } from 'lucide-react'
+import { Sparkles, Boxes, Download, MonitorSmartphone, X, Search, GraduationCap } from 'lucide-react'
+import { openTutorialCenter } from './Tutorial'
 
 const STORAGE_KEY = 'mp-template-studio:v1'
 
@@ -62,6 +63,12 @@ export default function Home() {
             一键导出可直接导入微信开发者工具的完整源码。
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
+            <button
+              onClick={openTutorialCenter}
+              className="px-5 h-11 rounded-xl bg-white/12 border border-white/25 text-white font-medium text-sm inline-flex items-center gap-2 hover:bg-white/20 transition"
+            >
+              <GraduationCap size={16} /> 新手教程
+            </button>
             {hasDraft ? (
               <button
                 onClick={() => restore()}
