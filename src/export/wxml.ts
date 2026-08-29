@@ -187,7 +187,7 @@ export const RENDER_WXML = `<template name="mp-node-inner">
   <view wx:elif="{{node.type === 'goods'}}" style="{{node._s}}">
     <!-- 横向滑动 -->
     <scroll-view wx:if="{{node.props.layout === 'row'}}" scroll-x class="mp-g-row">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-row-item" style="background:{{T.cardBg}}" catchtap="onTap" data-page="{{node._link}}" data-tip="商品详情（示例）">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-row-item" style="background:{{T.cardBg}}" catchtap="onTap" data-action="buy" data-id="{{it.id || node.id + '_' + it._i}}" data-name="{{it.name}}" data-price="{{it.price}}" data-img="{{it.image}}">
         <view class="mp-g-row-img">
           ${IMG('mp-fill', 'it')}
           <view wx:if="{{it.tag}}" class="mp-g-tag" style="background:{{T.secondary}}">{{it.tag}}</view>
@@ -205,7 +205,7 @@ export const RENDER_WXML = `<template name="mp-node-inner">
 
     <!-- 纵向列表 -->
     <view wx:elif="{{node.props.layout === 'list'}}" class="mp-g-list" style="background:{{T.cardBg}}">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-list-item" catchtap="onTap" data-page="{{node._link}}" data-tip="商品详情（示例）">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-list-item" catchtap="onTap" data-action="buy" data-id="{{it.id || node.id + '_' + it._i}}" data-name="{{it.name}}" data-price="{{it.price}}" data-img="{{it.image}}">
         <view class="mp-g-list-img">
           ${IMG('mp-fill', 'it')}
         </view>
@@ -222,7 +222,7 @@ export const RENDER_WXML = `<template name="mp-node-inner">
 
     <!-- 网格 -->
     <view wx:else class="mp-g-grid">
-      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-grid-item" style="width:{{(100 - (node.props.columns - 1) * 2) / node.props.columns}}%;background:{{T.cardBg}}" catchtap="onTap" data-page="{{node._link}}" data-tip="商品详情（示例）">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-grid-item" style="width:{{(100 - (node.props.columns - 1) * 2) / node.props.columns}}%;background:{{T.cardBg}}" catchtap="onTap" data-action="buy" data-id="{{it.id || node.id + '_' + it._i}}" data-name="{{it.name}}" data-price="{{it.price}}" data-img="{{it.image}}">
         <view class="mp-g-grid-img">
           ${IMG('mp-fill', 'it')}
           <view wx:if="{{it.tag}}" class="mp-g-tag" style="background:{{T.secondary}}">{{it.tag}}</view>

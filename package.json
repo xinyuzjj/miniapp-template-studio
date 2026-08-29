@@ -1,7 +1,7 @@
 {
   "name": "miniapp-template-studio",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "浏览器里可视化搭建微信小程序，一键导出可直接运行的完整源码",
   "license": "MIT",

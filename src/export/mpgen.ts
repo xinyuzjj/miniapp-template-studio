@@ -142,9 +142,61 @@ export function collectIcons(project: MpProject): Set<string> {
 const APP_JS = `App({
   globalData: {},
   onLaunch: function () {
-    // 可在此处放置登录、获取定位等初始化逻辑
+    // 隐私授权（微信要求）：首次进入引导阅读隐私政策
+    try { require('./utils/privacy.js').ensurePrivacy() } catch (e) {}
   }
 })
+`
+
+/* 本地数据层（P0：纯前端持久化，零后端依赖）。选云开发/自有后端时把 addCart/fetch 换成云库调用即可。 */
+const STORE_JS = `var CART_KEY = 'mp_cart_v1'
+var FAV_KEY = 'mp_fav_v1'
+
+function read(k, d) { try { var v = wx.getStorageSync(k); return v || d } catch (e) { return d } }
+function write(k, v) { try { wx.setStorageSync(k, v) } catch (e) {} }
+
+function getCart() { return read(CART_KEY, []) }
+function addCart(item) {
+  var list = getCart()
+  var i = list.find(function (x) { return x.id === item.id })
+  if (i) i.qty = (i.qty || 1) + 1
+  else list.push({ id: item.id, name: item.name, price: item.price, img: item.img, qty: 1 })
+  write(CART_KEY, list)
+  return list
+}
+function removeCart(id) { var l = getCart().filter(function (x) { return x.id !== id }); write(CART_KEY, l); return l }
+function clearCart() { write(CART_KEY, []); return [] }
+function cartCount() { return getCart().reduce(function (s, x) { return s + (x.qty || 1) }, 0) }
+
+function getFav() { return read(FAV_KEY, []) }
+function toggleFav(id) { var l = getFav(); if (l.indexOf(id) >= 0) l = l.filter(function (x) { return x !== id }); else l.push(id); write(FAV_KEY, l); return l }
+function hasFav(id) { return getFav().indexOf(id) >= 0 }
+
+function syncBadge(index) {
+  var n = cartCount()
+  try { if (n > 0) wx.setTabBarBadge({ index: index, text: String(n) }); else wx.removeTabBarBadge({ index: index }) } catch (e) {}
+}
+
+function kvGet(k, d) { return read(k, d) }
+function kvSet(k, v) { write(k, v) }
+
+module.exports = {
+  getCart: getCart, addCart: addCart, removeCart: removeCart, clearCart: clearCart, cartCount: cartCount,
+  getFav: getFav, toggleFav: toggleFav, hasFav: hasFav,
+  syncBadge: syncBadge, kvGet: kvGet, kvSet: kvSet,
+}
+`
+
+/* 隐私授权：首次进入引导阅读隐私政策（微信平台强制要求，否则审核不过） */
+const PRIVACY_JS = `function ensurePrivacy(cb) {
+  cb = cb || function () {}
+  if (!wx.requirePrivacyAuthorize) { cb(); return }
+  wx.requirePrivacyAuthorize({
+    success: function () { cb() },
+    fail: function () { cb() },
+  })
+}
+module.exports = { ensurePrivacy: ensurePrivacy }
 `
 
 const APP_WXSS = `page {
@@ -237,15 +289,39 @@ module.exports = {
     this._mpJump(e.currentTarget.dataset.page)
   },
 
-  /** 通用点击：有目标页则跳转，否则按语义给出示例反馈（可在此接入后端 / 支付） */
+  /** 通用点击：有目标页则跳转，否则按语义给出示例反馈（可在此接入后端 / 支付 / 本地缓存） */
   onTap: function (e) {
     var d = e.currentTarget.dataset
     if (d.page) { this._mpJump(d.page); return }
     var action = d.action
     if (action === 'search') { wx.showToast({ title: '搜索需接入后端接口', icon: 'none' }); return }
     if (action === 'claim') { wx.showToast({ title: '已领取（示例）', icon: 'success' }); return }
-    if (action === 'buy' || action === 'checkout') { this.onPay(e); return }
+    if (action === 'fav') {
+      try {
+        var fid = d.id || d.tip || 'item'
+        var fav = require('../../utils/store.js').toggleFav(fid)
+        wx.showToast({ title: fav.indexOf(fid) >= 0 ? '已收藏' : '已取消收藏', icon: 'none' })
+      } catch (err) { wx.showToast({ title: '收藏失败', icon: 'none' }) }
+      return
+    }
+    if (action === 'buy') {
+      try {
+        var store = require('../../utils/store.js')
+        var item = { id: d.id || ('g_' + Date.now()), name: d.name || '商品', price: Number(d.price) || 0, img: d.img || '' }
+        store.addCart(item)
+        store.syncBadge((this.data && this.data.cartIndex) || 0)
+        wx.showToast({ title: '已加入购物车', icon: 'success' })
+      } catch (err) { wx.showToast({ title: '加入失败', icon: 'none' }) }
+      return
+    }
+    if (action === 'checkout') { this.onPay(e); return }
     wx.showToast({ title: d.tip || '示例按钮 · 在编辑器为组件绑定跳转后即可跳转', icon: 'none' })
+  },
+
+  /** 同步购物车角标（tabBar 上购物车页的红点数量，来自本地缓存） */
+  syncCartBadge: function () {
+    var idx = (this.data && this.data.cartIndex) || 0
+    try { require('../../utils/store.js').syncBadge(idx) } catch (e) {}
   },
 
   /**
@@ -310,7 +386,7 @@ module.exports = {
 `
 }
 
-function pageJs(page: { path: string; navTitle: string }, nodes: any[], tabPaths: string[]): string {
+function pageJs(page: { path: string; navTitle: string }, nodes: any[], tabPaths: string[], cartIndex: number): string {
   const data = JSON.stringify(nodes, null, 2).split('\n').join('\n  ')
   const tabData = JSON.stringify(tabPaths)
   return `// ${page.path}.js
@@ -324,10 +400,15 @@ Page(Object.assign({}, H, {
     T: T,
     nodes: NODES,
     form: {},
-    tabPages: ${tabData}
+    tabPages: ${tabData},
+    cartIndex: ${cartIndex}
   },
   onLoad: function () {
     wx.setNavigationBarTitle({ title: ${JSON.stringify(page.navTitle)} })
+  },
+  onShow: function () {
+    // 同步购物车角标：每次进入页面都从本地缓存刷新角标数量
+    if (this.syncCartBadge) this.syncCartBadge()
   },
   onShareAppMessage: function () {
     return { title: ${JSON.stringify(page.navTitle)}, path: '/${page.path}/index' }
@@ -459,7 +540,9 @@ pages/<name>/index.*            各页面（wxml / js / wxss / json）
 templates/render.wxml           通用组件渲染模板（递归渲染页面数据）
 templates/render.wxss           通用组件样式
 utils/theme.js                  全局主题变量，改这里可一键换色
-utils/handlers.js               页面公共交互（表单、导航、拨号等）
+utils/handlers.js               页面公共交互（表单、导航、拨号、加购、跳转等）
+utils/store.js                  本地数据层（购物车 / 收藏持久化，零后端依赖）
+utils/privacy.js                隐私授权（微信平台强制要求，否则审核不过）
 images/icons/                   组件图标（p_ 主色 / s_ 灰色 / w_ 白色）
 images/tabbar/                  底部导航图标
 deploy.bat / .sh              自动打开项目的部署脚本
@@ -474,6 +557,22 @@ DEPLOY.txt                     傻瓜式部署图文步骤
 - **改配色**：编辑 \`utils/theme.js\`。
 - **加交互**：在页面 js 中新增函数，或在 \`utils/handlers.js\` 中扩展公共行为。
 - **接后端**：在 \`utils/handlers.js\` 的 \`onSubmit\` 等方法里调用 \`wx.request\`。
+
+## 本地数据与隐私（已内置，零后端即可跑）
+
+- **购物车 / 收藏**：点商品卡片即「加入购物车」，数据写入 \`wx.setStorageSync\`（本地缓存），
+  底部购物车 tab 的角标数量会自动同步；收藏同理。换手机 / 清缓存才会丢，
+  接云开发或自有后端时，把 \`utils/store.js\` 里的 \`addCart / getCart / toggleFav\` 换成云库调用即可。
+- **隐私授权**：\`app.js\` 启动即调用 \`utils/privacy.js\` 的 \`ensurePrivacy()\`，
+  按微信要求弹出隐私协议授权（不接会被审核打回）。你的隐私政策链接请到
+  「微信公众平台 → 设置 → 服务内容 → 用户隐私指引」中配置。
+
+## 如何接入支付 / 后端（需自行实现服务端）
+
+微信支付**必须走后端**：① 前端下单 → ② 你的服务端调用微信「统一下单」拿到 \`prepay_id\`
+→ ③ 服务端用 \`nonceStr / timeStamp / signType / paySign\` 签名后回传前端 →
+④ 前端调 \`wx.requestPayment\`。点「去结算」按钮已预留 \`onPay()\` 接入点（当前弹窗提示，
+不内置真实支付）。后端可用微信云开发 CloudBase，或任意自有 HTTP 服务。
 
 ## 说明
 
@@ -491,6 +590,10 @@ export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile
   const hasTab = p.tabBar.enabled && p.tabBar.items.length > 0
   const pagePaths = p.pages.map((x) => x.path)
   const tabPaths = p.tabBar.enabled ? p.tabBar.items.map((i) => i.pagePath) : []
+  // 购物车页在 tabBar 中的位置（用于同步角标），找不到则为 -1
+  const cartIndex = p.tabBar.enabled
+    ? p.tabBar.items.findIndex((it) => /cart|购物|购/.test(it.pagePath + '|' + it.text))
+    : -1
 
   files.push({ path: 'app.js', content: APP_JS })
   files.push({ path: 'app.wxss', content: APP_WXSS })
@@ -538,13 +641,15 @@ export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile
   files.push({ path: 'project.config.json', content: projectConfig(p) })
   files.push({ path: 'utils/theme.js', content: themeJs(p.theme) })
   files.push({ path: 'utils/handlers.js', content: HANDLERS_JS })
+  files.push({ path: 'utils/store.js', content: STORE_JS })
+  files.push({ path: 'utils/privacy.js', content: PRIVACY_JS })
   files.push({ path: 'templates/render.wxml', content: RENDER_WXML })
   files.push({ path: 'templates/render.wxss', content: RENDER_WXSS })
 
   p.pages.forEach((pg) => {
     const nodes = compileNodes(pg.nodes)
     const dir = pg.path.replace(/^pages\//, 'pages/')
-    files.push({ path: `${dir}.js`, content: pageJs(pg, nodes, tabPaths) })
+    files.push({ path: `${dir}.js`, content: pageJs(pg, nodes, tabPaths, cartIndex) })
     files.push({ path: `${dir}.wxml`, content: pageWxml() })
     files.push({ path: `${dir}.wxss`, content: pageWxss(pg.background) })
     files.push({ path: `${dir}.json`, content: pageJson(pg) })

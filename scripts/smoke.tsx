@@ -295,6 +295,34 @@ check('组件联动：通用点击 onTap 绑定到所有 CTA', () => {
   if (!wxml.includes('data-action="claim"')) throw new Error('coupon 未绑定领取动作')
 })
 
+check('P0 本地数据层：导出 store.js / privacy.js 并接入', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'p0a' }
+  const files = generateCodeFiles(project)
+  const paths = files.map((f) => f.path)
+  if (!paths.includes('utils/store.js')) throw new Error('未生成 utils/store.js')
+  if (!paths.includes('utils/privacy.js')) throw new Error('未生成 utils/privacy.js')
+  const appJs = String(files.find((f) => f.path === 'app.js')!.content)
+  if (!appJs.includes('require(\'./utils/privacy.js\')')) throw new Error('app.js 未调用隐私授权')
+  const handlers = String(files.find((f) => f.path === 'utils/handlers.js')!.content)
+  if (!handlers.includes('syncCartBadge')) throw new Error('handlers.js 未包含同步角标')
+  if (!handlers.includes('addCart')) throw new Error('handlers.js 未调用 addCart')
+})
+
+check('P0 本地数据层：购物车角标索引注入页面 + 商品加购绑定', () => {
+  const cartTpl = TEMPLATES.find((t) => {
+    const p = t.build()
+    return p.tabBar.enabled && p.tabBar.items.some((it) => /cart|购物|购/.test(it.pagePath + '|' + it.text))
+  })
+  if (!cartTpl) return // 无购物车 tab 的模板跳过
+  const project = { ...cartTpl.build(), id: 'p0c' }
+  const files = generateCodeFiles(project)
+  const pageJs = String(files.find((f) => f.path === `${project.pages[0].path}.js`)!.content)
+  if (!pageJs.includes('cartIndex:')) throw new Error('页面 js 未注入 cartIndex')
+  if (!pageJs.includes('onShow:')) throw new Error('页面 js 未注入 onShow 同步角标')
+  const wxml = String(files.find((f) => f.path === 'templates/render.wxml')!.content)
+  if (!wxml.includes('data-action="buy"')) throw new Error('商品组件未绑定加购动作')
+})
+
 check('导出自检：正常项目通过', () => {
   const project = { ...TEMPLATES[4].build(), id: 'sc1' }
   const r = runSelfCheck(project)

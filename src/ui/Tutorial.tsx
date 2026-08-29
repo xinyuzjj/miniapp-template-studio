@@ -186,6 +186,8 @@ function FaqTab() {
     ['导出的按钮点了没反应？', '未配置跳转的按钮会给出示例提示（如「下单需接入后端与微信支付」）。想让按钮真正跳转：在编辑器选中组件 → 右侧「页面跳转」选目标页，导出后点击即跳；或改导出包 utils/handlers.js 的 onTap / onSubmit 接你自己的逻辑。'],
     ['怎么接入微信支付？', '支付必须走你自己的服务端：前端下单 → 服务端调微信「统一下单」拿 prepay_id → 返回签名给前端 → wx.requestPayment。handlers.js 已留 onPay() 接入点，详见仓库 README「如何接入支付 / 后端」。纯前端无法完成支付。'],
     ['数据会传到服务器吗？', '不会。整个工具跑在浏览器里，导出用 JSZip 在本地打包，项目数据只存在你本机 localStorage。'],
+    ['购物车 / 收藏的数据存在哪？', '导出包默认用微信本地缓存（wx.setStorageSync），写入 utils/store.js，点商品卡片即加购、底部角标自动同步，零后端即可跑。要上云把 store.js 里的 addCart / toggleFav 换成云开发或自有后端调用即可。'],
+    ['为什么要点开就弹隐私授权？', '微信平台强制要求：不接隐私授权，小程序会被审核打回。导出包 app.js 启动即调 utils/privacy.js 的 ensurePrivacy() 弹窗，你的隐私政策链接在微信公众平台配置。'],
   ]
   return (
     <div className="space-y-4">
