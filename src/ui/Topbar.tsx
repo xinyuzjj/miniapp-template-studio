@@ -65,7 +65,7 @@ export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: bool
       const deploy = buildDeployScripts(project)
       const blob = await buildZip([...files, ...icons, ...tabFiles, ...deploy])
       downloadBlob(blob, `${project.name || 'miniapp'}-deploy.zip`)
-      flash('已下载部署包，解压后双击「一键部署」即可')
+      flash('已下载部署包，解压后双击 deploy.bat 即可')
       setShowGuide(true)
     } catch (e) {
       flash('部署包生成失败，请重试')
@@ -170,7 +170,7 @@ export default function Topbar({ zen, setZen }: { zen: boolean; setZen: (v: bool
 function DeployGuide({ onClose }: { onClose: () => void }) {
   const steps = [
     { t: '下载部署包', d: '点「一键部署」已自动下载一个 zip，里面是完整小程序代码 + 部署脚本。' },
-    { t: '解压并双击', d: '把 zip 解压到任意文件夹，双击里面的「一键部署.bat」（Mac 用「一键部署.sh」）。' },
+    { t: '解压并双击', d: '把 zip 解压到任意文件夹，双击里面的 deploy.bat（Mac 用 deploy.sh）。' },
     { t: '自动打开工具', d: '脚本会自动找到微信开发者工具并打开项目；登录后左侧就是手机预览。' },
     { t: '预览 / 上传', d: '点「预览」生成真机二维码；点「上传」填版本号提交审核。正式发布需替换为你的 AppID。' },
   ]
@@ -202,7 +202,7 @@ function DeployGuide({ onClose }: { onClose: () => void }) {
           ))}
           <div className="rounded-xl bg-amber-50 border border-amber-100 px-3.5 py-2.5 text-[12px] text-amber-700 leading-relaxed">
             提示：预览用测试号即可；<b>上传 / 正式发布</b>需要你自己的小程序 AppID（微信公众平台注册）。把
-            <code className="px-1">project.config.json</code> 里的 <code className="px-1">appid</code> 换掉再用「上传体验版」脚本即可。
+            <code className="px-1">project.config.json</code> 里的 <code className="px-1">appid</code> 换掉再用 upload.bat 脚本即可。
           </div>
           <button
             onClick={onClose}

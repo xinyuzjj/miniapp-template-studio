@@ -117,7 +117,7 @@ function StartTab() {
         <p>右侧切到「主题与页面」，改一个主色，整站按钮、图标、选中态全部联动变色；还能调圆角、底部导航与导航栏标题。</p>
       </Section>
       <Section n={4} title="导出 / 部署">
-        <p>点右上角 <Pill>导出代码</Pill> 拿到 zip；或点 <Pill>一键部署</Pill> 下载一个自带脚本的包，解压双击即可在微信开发者工具里打开。</p>
+        <p>点右上角 <Pill>导出代码</Pill> 拿到 zip；或点 <Pill>一键部署</Pill> 下载一个自带脚本的包，解压后双击 deploy.bat 即可在微信开发者工具里打开。</p>
       </Section>
     </div>
   )
@@ -157,14 +157,14 @@ function AppIdTab() {
         <p>在本工具里点选、编辑、缩放，手机壳里实时出效果。<b>不需要装任何东西，不需要 AppID</b>。</p>
       </Section>
       <Section n={2} title="开发者工具模拟器预览（免 AppID）">
-        <p>点「一键部署」下载的包，默认 appid 是 <Pill>touristappid</Pill>（微信测试号）。双击「一键部署.bat / .sh」自动打开项目，<b>不用填 AppID</b>，左侧模拟器直接出画面。</p>
+        <p>点「一键部署」下载的包，默认 appid 是 <Pill>touristappid</Pill>（微信测试号）。双击 deploy.bat / deploy.sh 自动打开项目，<b>不用填 AppID</b>，左侧模拟器直接出画面。</p>
       </Section>
       <Section n={3} title="真机扫码（免 AppID，仅需登录）">
-        <p>解压包里新增「预览二维码.bat / .sh」，双击后自动生成二维码图片并打开，<b>用手机微信扫码即可看真机效果</b>。唯一前提：你本人在开发者工具里登录过个人微信（免费，不是 AppID）——这是微信平台的登录要求，无法绕开。</p>
+        <p>解压包里新增 preview-qr.bat / preview-qr.sh，双击后自动生成二维码图片并打开，<b>用手机微信扫码即可看真机效果</b>。唯一前提：你本人在开发者工具里登录过个人微信（免费，不是 AppID）——这是微信平台的登录要求，无法绕开。</p>
       </Section>
       <Section n={4} title="正式发布上线（唯一需要 AppID 的环节）">
         <p>微信公众平台规则所限，<b>上传 / 发布必须用自己的小程序 AppID</b>，这一步没法零操作。</p>
-        <p>最顺滑的做法：在本工具右侧「主题与页面 → 发布设置」里填好你的 AppID，再点「一键部署」后双击「上传体验版」脚本即可；或直接改导出包里 <Pill>project.config.json</Pill> 的 <Pill>appid</Pill> 字段。</p>
+        <p>最顺滑的做法：在本工具右侧「主题与页面 → 发布设置」里填好你的 AppID，再点「一键部署」后双击 upload.bat 脚本即可；或直接改导出包里 <Pill>project.config.json</Pill> 的 <Pill>appid</Pill> 字段。</p>
       </Section>
     </div>
   )
@@ -226,7 +226,7 @@ const STEPS: Step[] = [
   {
     sel: '#tour-actions',
     title: '④ 一键导出 / 部署',
-    body: '改满意后，点「导出代码」拿到 zip；或点「一键部署」下载一个自带脚本的包，解压双击即可在微信开发者工具里打开——免 AppID、免命令行。',
+    body: '改满意后，点「导出代码」拿到 zip；或点「一键部署」下载一个自带脚本的包，解压后双击 deploy.bat 即可在微信开发者工具里打开——免 AppID、免命令行。',
     side: 'bottom',
   },
 ]

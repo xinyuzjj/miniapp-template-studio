@@ -99,21 +99,33 @@ check('一键部署脚本生成', () => {
   const project = { ...TEMPLATES[0].build(), id: 'd1' }
   const deploy = buildDeployScripts(project)
   const paths = deploy.map((f) => f.path)
-  for (const name of ['一键部署.bat', '一键部署.sh', '上传体验版.bat', '上传体验版.sh', '部署说明.txt']) {
+  for (const name of ['deploy.bat', 'deploy.sh', 'preview-qr.bat', 'preview-qr.sh', 'upload.bat', 'upload.sh', 'DEPLOY.txt']) {
     if (!paths.includes(name)) throw new Error(`缺少部署文件: ${name}`)
   }
-  const bat = String(deploy.find((f) => f.path === '一键部署.bat')!.content)
+  const bat = String(deploy.find((f) => f.path === 'deploy.bat')!.content)
   if (!/cli\b/.test(bat)) throw new Error('bat 未引用 cli')
   if (!/open --project/.test(bat)) throw new Error('bat 未包含 open 指令')
   if (!/chcp 65001/.test(bat)) throw new Error('bat 缺少 UTF-8 编码声明')
-  const sh = String(deploy.find((f) => f.path === '一键部署.sh')!.content)
+  // 关键：bat 绝不能有 BOM，必须以 @echo off 开头（否则中文 Windows 命令行会把首行当乱码）
+  if (/^\uFEFF/.test(bat)) throw new Error('bat 带 BOM，会导致命令行首行乱码')
+  if (!/^@echo off/.test(bat)) throw new Error('bat 首行不是 @echo off')
+  const sh = String(deploy.find((f) => f.path === 'deploy.sh')!.content)
   if (!/cli\b/.test(sh)) throw new Error('sh 未引用 cli')
   if (!/open --project/.test(sh)) throw new Error('sh 未包含 open 指令')
-  const upBat = String(deploy.find((f) => f.path === '上传体验版.bat')!.content)
+  const upBat = String(deploy.find((f) => f.path === 'upload.bat')!.content)
   if (!/upload --project/.test(upBat)) throw new Error('上传 bat 未包含 upload 指令')
   if (!/--version/.test(upBat)) throw new Error('上传 bat 缺少版本号参数')
-  const guide = String(deploy.find((f) => f.path === '部署说明.txt')!.content)
-  if (!/微信开发者工具/.test(guide)) throw new Error('说明文档缺失关键信息')
+  const qrBat = String(deploy.find((f) => f.path === 'preview-qr.bat')!.content)
+  if (!/preview --project/.test(qrBat)) throw new Error('二维码 bat 未包含 preview 指令')
+  // 脚本应为纯 ASCII（微信开发者工具安装路径含中文，由 chcp 65001 解析，不在脚本字面量里显示）
+  const ascii = (s: string) => [...s].every((c) => c.charCodeAt(0) < 128)
+  for (const f of deploy) {
+    if (f.path.endsWith('.bat') && !ascii(String(f.content))) {
+      throw new Error(`部署脚本含非 ASCII 字符: ${f.path}`)
+    }
+  }
+  const guide = String(deploy.find((f) => f.path === 'DEPLOY.txt')!.content)
+  if (!/DevTools/.test(guide)) throw new Error('说明文档缺失关键信息')
   if (!/AppID/.test(guide)) throw new Error('说明文档未提及 AppID 说明')
   // 部署脚本与源码文件无冲突
   const code = generateCodeFiles(project)
