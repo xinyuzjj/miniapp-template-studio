@@ -62,11 +62,39 @@ export function runSelfCheck(p: MpProject): SelfCheckResult {
   } catch {
     /* 已在上面作为错误上报 */
   }
+
+  // 开启分包后，非首页 / 非 tabBar 页的文件落在 sub/ 下，路由也带 sub/ 前缀
+  const mainSet = new Set<string>([p.pages[0]?.path, ...(p.tabBar.enabled ? p.tabBar.items.map((i) => i.pagePath) : [])])
+  const subSet = new Set<string>(
+    p.backend?.subpackage ? p.pages.map((x) => x.path).filter((x) => x && !mainSet.has(x)) : [],
+  )
+  const fileOf = (path: string) => (subSet.has(path) ? `sub/${path}` : path)
+
   const pageSet = new Set<string>(appJson?.pages ?? [])
+  for (const sp of appJson?.subpackages ?? []) {
+    for (const sp2 of sp.pages ?? []) pageSet.add(sp.root ? `${sp.root}/${sp2}` : sp2)
+  }
+
   for (const pg of p.pages) {
     for (const ext of ['js', 'wxml', 'wxss', 'json']) {
-      if (!byPath.has(pg.path + '.' + ext)) push('error', pg.path, `缺少 ${ext} 文件`)
+      if (!byPath.has(fileOf(pg.path) + '.' + ext)) push('error', fileOf(pg.path), `缺少 ${ext} 文件`)
     }
+  }
+
+  // 云开发模式必须带齐云函数，否则导出包接不上后端
+  if (p.backend?.mode === 'cloud') {
+    for (const fn of ['login', 'order', 'pay', 'form', 'cms']) {
+      if (!byPath.has(`cloudfunctions/${fn}/index.js`)) push('error', '云函数', `缺少 ${fn}/index.js`)
+      if (!byPath.has(`cloudfunctions/${fn}/package.json`)) push('error', '云函数', `缺少 ${fn}/package.json`)
+    }
+    if (!byPath.has('cloudfunctions/README.md')) push('warn', '云函数', '缺少数据库与部署说明')
+    try {
+      const cfg = JSON.parse(byPath.get('project.config.json') || '{}')
+      if (cfg.cloudfunctionRoot !== 'cloudfunctions/') push('error', 'project.config.json', '未声明 cloudfunctionRoot')
+    } catch {
+      /* 已在上面作为错误上报 */
+    }
+    if (!p.backend.envId) push('warn', '云开发', '未填写云环境 ID，导出后需手动补')
   }
 
   if (p.tabBar.enabled) {
@@ -88,8 +116,16 @@ export function runSelfCheck(p: MpProject): SelfCheckResult {
   })
 
   p.pages.forEach((pg) => {
-    const w = byPath.get(pg.path + '.wxml')
-    if (w && !w.includes('import src="/templates/render.wxml"')) push('error', pg.path + '.wxml', '未引入渲染模板')
+    const w = byPath.get(fileOf(pg.path) + '.wxml')
+    if (w && !w.includes('import src="/templates/render.wxml"')) push('error', fileOf(pg.path) + '.wxml', '未引入渲染模板')
+  })
+
+  // 分包页面里的 require 必须多一层，否则运行时找不到 utils
+  p.pages.forEach((pg) => {
+    const js = byPath.get(fileOf(pg.path) + '.js')
+    if (!js) return
+    const up = subSet.has(pg.path) ? '../../../utils/' : '../../utils/'
+    if (!js.includes(`require('${up}theme.js')`)) push('error', fileOf(pg.path) + '.js', '依赖引用层级不正确')
   })
 
   const errors = items.filter((i) => i.level === 'error').length

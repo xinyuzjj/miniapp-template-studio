@@ -207,6 +207,10 @@ function ThemePanel() {
   const updatePage = useApp((s) => s.updatePage)
   const page = useCurrentPage()
   const t = project.theme
+  const be = project.backend ?? { mode: 'local' as const }
+  const mode = be.mode
+  const inputCls =
+    'w-full h-8 px-2.5 rounded-lg border border-ink-200 bg-white text-[12.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100'
 
   const colors: { key: keyof typeof t; label: string }[] = [
     { key: 'primary', label: '主色（按钮/图标）' },
@@ -391,6 +395,109 @@ function ThemePanel() {
         </label>
         <div className="text-[11px] text-ink-400 leading-relaxed">
           预览 / 真机扫码用测试号即可，<b className="text-ink-500">无需 AppID</b>。仅正式发布需填你自己的小程序 AppID。
+        </div>
+      </div>
+
+      <div className="mt-5 pt-4 border-t border-ink-100">
+        <div className="text-[11.5px] font-semibold text-ink-600 mb-1">数据后端</div>
+        <div className="text-[11px] text-ink-400 mb-3 leading-relaxed">
+          决定导出包的购物车 / 订单 / 表单「存在哪」。切换后重新导出即可，页面代码不用改。
+        </div>
+        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+          {([
+            ['local', '本地缓存'],
+            ['cloud', '微信云开发'],
+            ['api', '自有接口'],
+          ] as const).map(([v, label]) => (
+            <button
+              key={v}
+              onClick={() => updateProject({ backend: { ...be, mode: v } })}
+              className={`h-7 rounded-lg text-[11.5px] border transition ${
+                mode === v
+                  ? 'bg-brand-600 text-white border-brand-600'
+                  : 'bg-white text-ink-500 border-ink-200 hover:border-brand-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {mode === 'local' ? (
+          <div className="text-[11px] text-ink-400 leading-relaxed">
+            数据存用户手机本地（<code className="text-ink-500">wx.setStorageSync</code>），
+            <b className="text-ink-500">零后端、零费用</b>，导入即可跑通加购 / 下单 / 表单。换设备或清缓存会丢。
+          </div>
+        ) : null}
+
+        {mode === 'cloud' ? (
+          <label className="block mb-2.5">
+            <span className="block text-[11px] text-ink-500 mb-1">云环境 ID</span>
+            <input
+              value={be.envId || ''}
+              onChange={(e) => updateProject({ backend: { ...be, envId: e.target.value.trim() } })}
+              placeholder="cloud1-8gxxxxxxxx"
+              className={inputCls}
+            />
+            <span className="block text-[10.5px] text-ink-400 mt-1 leading-relaxed">
+              开发者工具顶部「云开发」开通后可见。导出包会带 login / order / pay / form / cms 五个云函数，
+              上传后即可真实落库与收款。
+            </span>
+          </label>
+        ) : null}
+
+        {mode === 'api' ? (
+          <label className="block mb-2.5">
+            <span className="block text-[11px] text-ink-500 mb-1">接口根地址</span>
+            <input
+              value={be.apiBase || ''}
+              onChange={(e) => updateProject({ backend: { ...be, apiBase: e.target.value.trim() } })}
+              placeholder="https://api.example.com"
+              className={inputCls}
+            />
+            <span className="block text-[10.5px] text-ink-400 mt-1 leading-relaxed">
+              需提供 <code className="text-ink-500">/api/login</code>、<code className="text-ink-500">/api/order</code>、
+              <code className="text-ink-500">/api/form</code> 等接口，返回 <code className="text-ink-500">{`{ ok: true, data }`}</code>；
+              域名要加进公众平台的 request 合法域名。
+            </span>
+          </label>
+        ) : null}
+
+        {mode !== 'local' ? (
+          <label className="block mb-2.5">
+            <span className="block text-[11px] text-ink-500 mb-1">订阅消息模板 ID（可选）</span>
+            <input
+              value={be.tmplIds || ''}
+              onChange={(e) => updateProject({ backend: { ...be, tmplIds: e.target.value } })}
+              placeholder="多个用英文逗号分隔"
+              className={inputCls}
+            />
+            <span className="block text-[10.5px] text-ink-400 mt-1">
+              在微信公众平台申请；填了之后表单提交完会引导用户订阅。
+            </span>
+          </label>
+        ) : null}
+
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-[11.5px] text-ink-500">开启埋点上报</span>
+          <button
+            onClick={() => updateProject({ backend: { ...be, track: !be.track } })}
+            className={`w-10 h-5 rounded-full transition relative ${be.track ? 'bg-brand-600' : 'bg-ink-200'}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${be.track ? 'left-5' : 'left-0.5'}`} />
+          </button>
+        </div>
+        <div className="flex items-center justify-between mt-2.5">
+          <span className="text-[11.5px] text-ink-500">非首页页面放进分包</span>
+          <button
+            onClick={() => updateProject({ backend: { ...be, subpackage: !be.subpackage } })}
+            className={`w-10 h-5 rounded-full transition relative ${be.subpackage ? 'bg-brand-600' : 'bg-ink-200'}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${be.subpackage ? 'left-5' : 'left-0.5'}`} />
+          </button>
+        </div>
+        <div className="text-[10.5px] text-ink-400 mt-1.5 leading-relaxed">
+          分包把主包只留首页与 tabBar 页，规避主包 2MB 限制；埋点在云开发 / 自有接口模式下才真正上报。
         </div>
       </div>
     </div>

@@ -367,5 +367,144 @@ check('自定义区块：插入与删除', () => {
   if (useApp.getState().blocks.length !== bbefore - 1) throw new Error('删除区块失败')
 })
 
+/* 9. P1 云开发 starter */
+check('P1 云开发：导出云函数包 + 云初始化', () => {
+  const base = TEMPLATES[0].build()
+  const project = { ...base, id: 'cf1', backend: { mode: 'cloud' as const, envId: 'cloud1-8gtest', track: true } }
+  const files = generateCodeFiles(project)
+  const paths = files.map((f) => f.path)
+  for (const name of ['login', 'order', 'pay', 'form', 'cms']) {
+    if (!paths.includes(`cloudfunctions/${name}/index.js`)) throw new Error(`缺少云函数 ${name}`)
+    if (!paths.includes(`cloudfunctions/${name}/package.json`)) throw new Error(`缺少云函数 ${name} 的 package.json`)
+  }
+  if (!paths.includes('cloudfunctions/README.md')) throw new Error('缺少云函数部署与数据库说明')
+  const appJs = String(files.find((f) => f.path === 'app.js')!.content)
+  if (!appJs.includes('wx.cloud.init')) throw new Error('app.js 未做云初始化')
+  if (!appJs.includes('cloud1-8gtest')) throw new Error('云环境 ID 未注入 app.js')
+  if (!appJs.includes("name: 'login'")) throw new Error('app.js 未调用 login 云函数换 openid')
+  const cfg = JSON.parse(String(files.find((f) => f.path === 'project.config.json')!.content))
+  if (cfg.cloudfunctionRoot !== 'cloudfunctions/') throw new Error('project.config.json 未声明 cloudfunctionRoot')
+  const store = String(files.find((f) => f.path === 'utils/store.js')!.content)
+  if (!store.includes('var MODE = "cloud"')) throw new Error('store.js 模式未切到 cloud')
+  if (!store.includes('fetchPage')) throw new Error('store.js 缺少页面数据拉取')
+  const order = String(files.find((f) => f.path === 'cloudfunctions/order/index.js')!.content)
+  if (!order.includes("action === 'list'")) throw new Error('order 云函数缺少订单列表分支')
+  const pay = String(files.find((f) => f.path === 'cloudfunctions/pay/index.js')!.content)
+  if (!pay.includes('unifiedorder')) throw new Error('pay 云函数未接统一下单')
+})
+
+check('P1 自有接口：注入接口根地址与接缝', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'api1', backend: { mode: 'api' as const, apiBase: 'https://api.example.com' } }
+  const files = generateCodeFiles(project)
+  const store = String(files.find((f) => f.path === 'utils/store.js')!.content)
+  if (!store.includes('https://api.example.com')) throw new Error('接口根地址未注入')
+  for (const p of ['/api/order', '/api/form', '/api/page', '/api/orders']) {
+    if (!store.includes(p)) throw new Error(`缺少接口接缝 ${p}`)
+  }
+  // 登录接口在 app.js（启动即换 openid）
+  const appJs = String(files.find((f) => f.path === 'app.js')!.content)
+  if (!appJs.includes('/api/login')) throw new Error('app.js 未走接口登录')
+  const cfg = JSON.parse(String(files.find((f) => f.path === 'project.config.json')!.content))
+  if (cfg.cloudfunctionRoot) throw new Error('非云模式不应声明 cloudfunctionRoot')
+})
+
+check('P1 运行时数据：页面 onLoad 静态兜底 + 云端覆盖', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'fp1' }
+  const files = generateCodeFiles(project)
+  const pageJs = String(files.find((f) => f.path === `${project.pages[0].path}.js`)!.content)
+  if (!pageJs.includes('fetchPage')) throw new Error('页面 onLoad 未拉取运行时数据')
+  if (!pageJs.includes('NODES')) throw new Error('页面缺少静态兜底数据')
+})
+
+/* 10. P2 用户与订单闭环 */
+check('P2 订单闭环：下单 / 支付 / 表单 / 订单查询已接通', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'p2a' }
+  const files = generateCodeFiles(project)
+  const handlers = String(files.find((f) => f.path === 'utils/handlers.js')!.content)
+  if (!handlers.includes('onOrders:')) throw new Error('缺少订单查询处理器')
+  if (!handlers.includes('createOrder')) throw new Error('结算未走下单流程')
+  if (!handlers.includes('wx.requestPayment')) throw new Error('缺少拉起微信支付')
+  if (!handlers.includes('submitForm')) throw new Error('表单提交未落库')
+  const store = String(files.find((f) => f.path === 'utils/store.js')!.content)
+  if (!store.includes('function createOrder')) throw new Error('store 缺少 createOrder')
+  if (!store.includes('function getOrders')) throw new Error('store 缺少 getOrders')
+  if (!store.includes('function submitForm')) throw new Error('store 缺少 submitForm')
+})
+
+check('P2 用户归属：登录拿 openid 并写入全局态', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'p2b', backend: { mode: 'cloud' as const, envId: 'cloud1-8gtest' } }
+  const files = generateCodeFiles(project)
+  const appJs = String(files.find((f) => f.path === 'app.js')!.content)
+  if (!appJs.includes('wx.login')) throw new Error('未调用 wx.login')
+  if (!appJs.includes('globalData.openid')) throw new Error('openid 未写入全局态')
+  const login = String(files.find((f) => f.path === 'cloudfunctions/login/index.js')!.content)
+  if (!login.includes('OPENID')) throw new Error('login 云函数未取 openid')
+  const order = String(files.find((f) => f.path === 'cloudfunctions/order/index.js')!.content)
+  if (!order.includes('_openid')) throw new Error('订单未按用户归属落库')
+})
+
+/* 11. P3 产品化 */
+check('P3 产品化：带参分享 / 订阅消息 / 埋点 / 搜索筛选', () => {
+  const project = { ...TEMPLATES[0].build(), id: 'p3a', backend: { mode: 'local' as const, track: true } }
+  const files = generateCodeFiles(project)
+  const pageJs = String(files.find((f) => f.path === `${project.pages[0].path}.js`)!.content)
+  if (!pageJs.includes("'?from='")) throw new Error('分享未带用户参数')
+  if (!pageJs.includes("track('page_view'")) throw new Error('页面未埋点')
+  const handlers = String(files.find((f) => f.path === 'utils/handlers.js')!.content)
+  if (!handlers.includes('onSubscribe:')) throw new Error('缺少订阅消息处理器')
+  if (!handlers.includes('_mpFilter')) throw new Error('缺少搜索筛选逻辑')
+  if (!handlers.includes('onSearchInput')) throw new Error('搜索框未绑定输入')
+  const wxml = String(files.find((f) => f.path === 'templates/render.wxml')!.content)
+  if (!wxml.includes('bindinput="onSearchInput"')) throw new Error('搜索组件未改为可输入')
+  const store = String(files.find((f) => f.path === 'utils/store.js')!.content)
+  if (!store.includes('function subscribe')) throw new Error('store 缺少订阅消息')
+  if (!store.includes('function track')) throw new Error('store 缺少埋点')
+  if (!store.includes('var TRACK = true')) throw new Error('埋点开关未开启')
+})
+
+check('P3 分包：页面路由与文件位置一致、依赖层级正确', () => {
+  for (const tpl of TEMPLATES) {
+    const base = tpl.build()
+    const project = { ...base, id: 'sub_' + tpl.id, backend: { mode: 'local' as const, subpackage: true } }
+    const files = generateCodeFiles(project)
+    const paths = new Set(files.map((f) => f.path))
+    const appJson = JSON.parse(String(files.find((f) => f.path === 'app.json')!.content))
+    const subPages: string[] = (appJson.subpackages?.[0]?.pages as string[]) ?? []
+    for (const p of appJson.pages as string[]) {
+      if (!paths.has(`${p}.js`)) throw new Error(`${tpl.id}：主包页面缺失 ${p}.js`)
+    }
+    for (const p of subPages) {
+      if (!paths.has(`sub/${p}.js`)) throw new Error(`${tpl.id}：分包页面缺失 sub/${p}.js`)
+      const js = String(files.find((f) => f.path === `sub/${p}.js`)!.content)
+      if (!js.includes("require('../../../utils/theme.js')")) throw new Error(`${tpl.id}：分包依赖层级不对`)
+    }
+    if ((appJson.pages as string[]).length + subPages.length !== base.pages.length)
+      throw new Error(`${tpl.id}：分包后页面总数不一致`)
+  }
+})
+
+check('P3 分包：跳转目标自动带上分包前缀', () => {
+  const base = TEMPLATES[0].build()
+  const extra = {
+    ...base.pages[1],
+    id: 'extra-page',
+    name: '额外页',
+    path: 'pages/extra/index',
+    navTitle: '额外页',
+  }
+  const project = {
+    ...base,
+    id: 'sublink',
+    backend: { mode: 'local' as const, subpackage: true },
+    pages: [{ ...base.pages[0], nodes: [{ ...base.pages[0].nodes[0], link: { to: 'pages/extra/index' } }, ...base.pages[0].nodes.slice(1)] }, ...base.pages.slice(1), extra],
+  }
+  const files = generateCodeFiles(project)
+  const homeJs = String(files.find((f) => f.path === `${base.pages[0].path}.js`)!.content)
+  if (!homeJs.includes('sub/pages/extra/index')) throw new Error('跳转目标未映射到分包路由')
+  const appJson = JSON.parse(String(files.find((f) => f.path === 'app.json')!.content))
+  if (!(appJson.subpackages?.[0]?.pages ?? []).includes('pages/extra/index'))
+    throw new Error('新增页面未进入分包')
+})
+
 console.log(failed === 0 ? '\n✅ 全部冒烟测试通过' : `\n❌ ${failed} 项失败`)
 process.exit(failed === 0 ? 0 : 1)

@@ -195,3 +195,23 @@ CMS/内容后台（非技术改文案）· 订阅消息/模板消息 · 分享�
 - 隐私保护指引需在微信公众平台配置，否则审核被拒。
 - 包体积：云函数不计入小程序包，但静态图标/图片需控制；必要时走分包。
 - 生成器改动较大（新增数据源概念 + 导出分支），建议 P0 先做纯前端持久化，验证 `store.js` 模式后再扩到 L1。
+
+---
+
+## 9. 落地状态（P0–P3 已全部完成）
+
+| 阶段 | 内容 | 状态 | 落地位置 |
+|---|---|---|---|
+| **P0** | 本地数据层 `utils/store.js`；购物车 / 收藏持久化 + tabBar 角标同步；隐私授权 + 合规字段 | ✅ v1.2.0 | `src/export/cloud.ts`（storeJs / PRIVACY_JS）、`mpgen.ts` |
+| **P1** | 云开发 starter：云初始化 + `wx.login` 换 openid；静态兜底 + 运行时覆盖；云函数 `login/order/pay/form/cms` + 数据库说明；生成器「数据后端」选项 | ✅ v1.3.0 | `src/export/cloud.ts`（appJs / cloudFiles）、`src/types.ts`（Backend）、`RightPanel.tsx` |
+| **P2** | 用户与订单闭环：openid 归属、订单列表与状态、表单真入库、下单→支付→清购物车 | ✅ v1.3.0 | `cloud.ts`（createOrder / getOrders / submitForm）、`mpgen.ts`（onPay / onOrders / onSubmit） |
+| **P3** | 产品化：带参分享、订阅消息、埋点、搜索筛选、分包 | ✅ v1.3.0 | `mpgen.ts`（onShareAppMessage / onSubscribe / onSearch + `_mpFilter` / 分包布局）、`wxml.ts`（搜索框改可输入） |
+
+**未做（有意保留）**：
+
+- **CMS 后台页面** —— 后台是独立系统（需登录鉴权、多用户、权限），塞进小程序模板会拖垮体积与复杂度。
+  折中方案：提供 `cms` 云函数 + 云开发控制台直接改数据，够用且零额外部署。
+- **搜索走后端** —— 当前是本地静态筛选（`_mpFilter`），对模板规模的静态数据已足够；接后端时可直接在 `onSearch` 里换成 `store.request`。
+
+**关键取舍**：三档后端共用**一个** `utils/store.js`，靠 `MODE` 常量分支（local / cloud / api）。
+页面与组件只调 `store.*`，不直接碰 `wx.*` —— 所以换后端时页面代码零改动，这也是本次能一次做完整 P0–P3 的前提。

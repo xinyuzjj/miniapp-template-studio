@@ -65,9 +65,9 @@ export const RENDER_WXML = `<template name="mp-node-inner">
 
   <!-- ============ 导航 ============ -->
   <view wx:elif="{{node.type === 'search'}}" style="{{node._s}}">
-    <view class="mp-search" style="height:76rpx;border-radius:{{node.props.radius * 2}}rpx;background:{{node.props.background}};justify-content:{{node.props.align === 'center' ? 'center' : 'flex-start'}}" catchtap="onTap" data-action="search">
+    <view class="mp-search" style="height:76rpx;border-radius:{{node.props.radius * 2}}rpx;background:{{node.props.background}};justify-content:{{node.props.align === 'center' ? 'center' : 'flex-start'}}">
       ${IC('search', 30, 's')}
-      <text class="mp-search-ph">{{node.props.placeholder}}</text>
+      <input class="mp-search-in" placeholder="{{node.props.placeholder}}" placeholder-class="mp-search-ph" value="{{kw}}" confirm-type="search" bindinput="onSearchInput" bindconfirm="onSearch" />
     </view>
   </view>
 
@@ -535,6 +535,7 @@ export const RENDER_WXSS = `/* ============ 通用 ============ */
 /* ============ 导航 ============ */
 .mp-search { display: flex; align-items: center; gap: 12rpx; padding: 0 28rpx; }
 .mp-search-ph { font-size: 26rpx; color: #9aa3b2; }
+.mp-search-in { flex: 1; height: 76rpx; font-size: 26rpx; color: #1a1d28; }
 .mp-notice { display: flex; align-items: center; gap: 12rpx; padding: 18rpx 24rpx; border-radius: 20rpx; }
 .mp-notice-tx { flex: 1; font-size: 24rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .mp-swiper { width: 100%; overflow: hidden; }

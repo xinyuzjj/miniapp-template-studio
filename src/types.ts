@@ -59,6 +59,26 @@ export interface MpPage {
   nodes: MpNode[]
 }
 
+/**
+ * 数据后端配置：决定导出包里「数据从哪来、往哪存」
+ * - local：纯本地缓存（wx.setStorageSync），零后端、零成本（默认）
+ * - cloud：微信云开发（wx.cloud.init + 云函数 login/order/pay/form）
+ * - api  ：自有后端（wx.request 打到你的 HTTPS 接口）
+ */
+export interface Backend {
+  mode: 'local' | 'cloud' | 'api'
+  /** 云开发环境 ID（mode=cloud 时必填） */
+  envId?: string
+  /** 自有接口根地址（mode=api 时必填），如 https://api.example.com */
+  apiBase?: string
+  /** 订阅消息模板 ID，逗号分隔（微信公众平台申请） */
+  tmplIds?: string
+  /** 是否把非首页 / 非 tabBar 页面放进分包（规避主包 2MB 限制） */
+  subpackage?: boolean
+  /** 是否开启埋点上报（local 模式仅打日志） */
+  track?: boolean
+}
+
 export interface Theme {
   primary: string
   primaryLight: string
@@ -82,6 +102,8 @@ export interface MpProject {
   theme: Theme
   tabBar: TabBar
   pages: MpPage[]
+  /** 数据后端（可选，默认 local 本地缓存，不填即保持纯前端） */
+  backend?: Backend
 }
 
 /* ------------------------------------------------------------------ */

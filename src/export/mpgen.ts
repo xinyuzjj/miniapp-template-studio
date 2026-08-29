@@ -1,6 +1,7 @@
-import type { MpNode, MpProject, NodeStyle, Theme } from '../types'
+import type { Backend, MpNode, MpProject, NodeStyle, Theme } from '../types'
 import { paletteAt } from '../core/palette'
 import { RENDER_WXML, RENDER_WXSS } from './wxml'
+import { appJs, storeJs, cloudFiles } from './cloud'
 
 export interface GenFile {
   path: string
@@ -139,53 +140,7 @@ export function collectIcons(project: MpProject): Set<string> {
 /* 各文件内容                                                          */
 /* ------------------------------------------------------------------ */
 
-const APP_JS = `App({
-  globalData: {},
-  onLaunch: function () {
-    // 隐私授权（微信要求）：首次进入引导阅读隐私政策
-    try { require('./utils/privacy.js').ensurePrivacy() } catch (e) {}
-  }
-})
-`
 
-/* 本地数据层（P0：纯前端持久化，零后端依赖）。选云开发/自有后端时把 addCart/fetch 换成云库调用即可。 */
-const STORE_JS = `var CART_KEY = 'mp_cart_v1'
-var FAV_KEY = 'mp_fav_v1'
-
-function read(k, d) { try { var v = wx.getStorageSync(k); return v || d } catch (e) { return d } }
-function write(k, v) { try { wx.setStorageSync(k, v) } catch (e) {} }
-
-function getCart() { return read(CART_KEY, []) }
-function addCart(item) {
-  var list = getCart()
-  var i = list.find(function (x) { return x.id === item.id })
-  if (i) i.qty = (i.qty || 1) + 1
-  else list.push({ id: item.id, name: item.name, price: item.price, img: item.img, qty: 1 })
-  write(CART_KEY, list)
-  return list
-}
-function removeCart(id) { var l = getCart().filter(function (x) { return x.id !== id }); write(CART_KEY, l); return l }
-function clearCart() { write(CART_KEY, []); return [] }
-function cartCount() { return getCart().reduce(function (s, x) { return s + (x.qty || 1) }, 0) }
-
-function getFav() { return read(FAV_KEY, []) }
-function toggleFav(id) { var l = getFav(); if (l.indexOf(id) >= 0) l = l.filter(function (x) { return x !== id }); else l.push(id); write(FAV_KEY, l); return l }
-function hasFav(id) { return getFav().indexOf(id) >= 0 }
-
-function syncBadge(index) {
-  var n = cartCount()
-  try { if (n > 0) wx.setTabBarBadge({ index: index, text: String(n) }); else wx.removeTabBarBadge({ index: index }) } catch (e) {}
-}
-
-function kvGet(k, d) { return read(k, d) }
-function kvSet(k, v) { write(k, v) }
-
-module.exports = {
-  getCart: getCart, addCart: addCart, removeCart: removeCart, clearCart: clearCart, cartCount: cartCount,
-  getFav: getFav, toggleFav: toggleFav, hasFav: hasFav,
-  syncBadge: syncBadge, kvGet: kvGet, kvSet: kvSet,
-}
-`
 
 /* 隐私授权：首次进入引导阅读隐私政策（微信平台强制要求，否则审核不过） */
 const PRIVACY_JS = `function ensurePrivacy(cb) {
@@ -231,8 +186,95 @@ module.exports = {
     this.setData({ ['form.' + i]: e.detail.value })
   },
 
+  /** 表单提交：真落库（cloud → form 云函数 / api → POST /api/form / local → 本地留档） */
   onSubmit: function () {
-    wx.showToast({ title: '提交成功', icon: 'success' })
+    var store = null
+    try { store = require('./store.js') } catch (e) {}
+    if (!store) { wx.showToast({ title: '提交成功', icon: 'success' }); return }
+    var form = (this.data && this.data.form) || {}
+    if (!Object.keys(form).length) { wx.showToast({ title: '请先填写内容', icon: 'none' }); return }
+    var self = this
+    wx.showLoading({ title: '提交中' })
+    store.submitForm(form, function (err) {
+      wx.hideLoading()
+      if (err) { wx.showToast({ title: '提交失败，请重试', icon: 'none' }); return }
+      wx.showToast({ title: '提交成功', icon: 'success' })
+      self.setData({ form: {} })
+      // 提交后引导订阅消息（未配置模板 ID 时静默跳过）
+      store.subscribe(function () {})
+      store.track('form_submit', { page: self.route })
+    })
+  },
+
+  /** 引导订阅消息：组件上绑 catchtap="onSubscribe" 即可使用，需先在公众平台申请模板 ID */
+  onSubscribe: function () {
+    var store = null
+    try { store = require('./store.js') } catch (e) {}
+    if (!store) { wx.showToast({ title: '数据层缺失', icon: 'none' }); return }
+    store.subscribe(function (err) {
+      if (err) wx.showToast({ title: '未配置订阅消息模板 ID', icon: 'none' })
+      else wx.showToast({ title: '订阅成功', icon: 'success' })
+    })
+  },
+
+  /** 我的订单：组件上绑 catchtap="onOrders" 即可查看（local 读本地，cloud / api 查后端） */
+  onOrders: function () {
+    var store = null
+    try { store = require('./store.js') } catch (e) {}
+    if (!store) { wx.showToast({ title: '数据层缺失', icon: 'none' }); return }
+    wx.showLoading({ title: '加载中' })
+    store.getOrders(function (err, list) {
+      wx.hideLoading()
+      if (err || !list || !list.length) { wx.showToast({ title: '暂无订单', icon: 'none' }); return }
+      var STATUS = { unpaid: '待支付', paid: '已支付', done: '已完成', closed: '已关闭' }
+      var text = list.slice(0, 5).map(function (o) {
+        var d = new Date(o.createdAt || Date.now())
+        var day = (d.getMonth() + 1) + '/' + d.getDate()
+        return day + '  ¥' + (((o.amount || 0) / 100).toFixed(2)) + '  ' + (STATUS[o.status] || '待支付') + '\\n' + (o.orderNo || '')
+      }).join('\\n')
+      wx.showModal({ title: '最近 ' + Math.min(list.length, 5) + ' 笔订单', content: text, showCancel: false })
+      store.track('view_orders', { count: list.length })
+    })
+  },
+
+  /** 搜索：顶部搜索框输入即筛选当前页的商品 / 文章（清空关键词自动还原） */
+  onSearchInput: function (e) {
+    this.setData({ kw: e.detail.value })
+    if (!e.detail.value) this._mpFilter('')
+  },
+
+  onSearch: function (e) {
+    this._mpFilter((e && e.detail && e.detail.value) || this.data.kw || '')
+  },
+
+  _mpFilter: function (kw) {
+    kw = String(kw || '').trim()
+    var self = this
+    if (!kw) {
+      if (this.data._rawNodes) this.setData({ nodes: this.data._rawNodes })
+      return
+    }
+    if (!this.data._rawNodes) this.setData({ _rawNodes: this.data.nodes })
+    var raw = this.data._rawNodes || this.data.nodes
+    var lower = kw.toLowerCase()
+    var hit = function (s) { return String(s === undefined || s === null ? '' : s).toLowerCase().indexOf(lower) >= 0 }
+    var LISTS = ['items', 'list']
+    var clone = []
+    try { clone = JSON.parse(JSON.stringify(raw)) } catch (e) { clone = raw }
+    var matched = 0
+    clone.forEach(function (n) {
+      if (!n.props) return
+      LISTS.forEach(function (k) {
+        if (!Array.isArray(n.props[k])) return
+        n.props[k] = n.props[k].filter(function (it) {
+          return hit(it.name) || hit(it.title) || hit(it.desc) || hit(it.text) || hit(it.tag)
+        })
+        matched += n.props[k].length
+      })
+    })
+    this.setData({ nodes: clone })
+    wx.showToast({ title: matched ? '找到 ' + matched + ' 条' : '没有匹配结果', icon: 'none' })
+    try { require('./store.js').track('search', { kw: kw, hits: matched }) } catch (e) {}
   },
 
   onFab: function (e) {
@@ -299,14 +341,14 @@ module.exports = {
     if (action === 'fav') {
       try {
         var fid = d.id || d.tip || 'item'
-        var fav = require('../../utils/store.js').toggleFav(fid)
+        var fav = require('./store.js').toggleFav(fid)
         wx.showToast({ title: fav.indexOf(fid) >= 0 ? '已收藏' : '已取消收藏', icon: 'none' })
       } catch (err) { wx.showToast({ title: '收藏失败', icon: 'none' }) }
       return
     }
     if (action === 'buy') {
       try {
-        var store = require('../../utils/store.js')
+        var store = require('./store.js')
         var item = { id: d.id || ('g_' + Date.now()), name: d.name || '商品', price: Number(d.price) || 0, img: d.img || '' }
         store.addCart(item)
         store.syncBadge((this.data && this.data.cartIndex) || 0)
@@ -321,20 +363,65 @@ module.exports = {
   /** 同步购物车角标（tabBar 上购物车页的红点数量，来自本地缓存） */
   syncCartBadge: function () {
     var idx = (this.data && this.data.cartIndex) || 0
-    try { require('../../utils/store.js').syncBadge(idx) } catch (e) {}
+    try { require('./store.js').syncBadge(idx) } catch (e) {}
   },
 
   /**
-   * 支付能力接入点（示意，需自行实现后端）
-   * 微信支付必须走你的服务端：前端下单 → 服务端调用微信「统一下单」拿到 prepay_id →
-   * 返回 nonceStr / timeStamp / signType / paySign 给前端 → 调 wx.requestPayment。
-   * 完整步骤见导出包 README 的「如何接入支付 / 后端」一节。
+   * 下单 + 支付闭环
+   *  1) store.createOrder 落库拿订单号（local 存本地 / cloud 走 order 云函数 / api 走接口）
+   *  2) 非 local 模式调 pay 拿支付参数 → wx.requestPayment 拉起收银台
+   *     后端未配商户号时会明确弹窗提示，不静默失败
    */
   onPay: function () {
-    wx.showModal({
-      title: '支付接入提示',
-      content: '本模板未内置支付。请接入你的后端：① 服务端调用微信「统一下单」获取 prepay_id；② 用返回的 nonceStr / timeStamp / signType / paySign 调 wx.requestPayment。详见导出包 README。',
-      showCancel: false,
+    var store = null
+    try { store = require('./store.js') } catch (e) {}
+    if (!store) { wx.showToast({ title: '数据层缺失', icon: 'none' }); return }
+    var self = this
+    var cart = store.getCart()
+    if (!cart.length) {
+      wx.showModal({ title: '购物车是空的', content: '先点商品卡片加入购物车，再来结算。', showCancel: false })
+      return
+    }
+    wx.showLoading({ title: '下单中' })
+    store.createOrder({ items: cart }, function (err, res) {
+      wx.hideLoading()
+      if (err || !res || !res.ok) {
+        wx.showModal({
+          title: '下单失败',
+          content: (err && err.message) || (res && res.msg) || '请检查网络或后端配置',
+          showCancel: false,
+        })
+        return
+      }
+      if (store.MODE !== 'local') {
+        store.call('pay', { orderNo: res.orderNo, amount: res.amount }, function (perr, pres) {
+          if (perr || !pres || !pres.ok || !pres.payParams) {
+            wx.showModal({
+              title: '支付未就绪',
+              content: (pres && pres.msg) || '请在后端配置商户号后再发起支付',
+              showCancel: false,
+            })
+            return
+          }
+          var params = pres.payParams
+          params.success = function () {
+            wx.showToast({ title: '支付成功', icon: 'success' })
+            store.clearCart()
+            if (self.syncCartBadge) self.syncCartBadge()
+          }
+          params.fail = function () { wx.showToast({ title: '已取消支付', icon: 'none' }) }
+          wx.requestPayment(params)
+        })
+        return
+      }
+      // local 模式：订单已落本地，给出接入指引
+      wx.showModal({
+        title: '订单已生成（本地）',
+        content: '订单号 ' + res.orderNo + '，金额 ¥' + (((res.amount || 0) / 100).toFixed(2)) +
+          '。当前是本地缓存模式未接入支付；把数据后端换成「微信云开发 / 自有接口」重新导出即可打通真实收款。',
+        showCancel: false,
+      })
+      store.track('order_local', { orderNo: res.orderNo })
     })
   }
 }
@@ -386,12 +473,19 @@ module.exports = {
 `
 }
 
-function pageJs(page: { path: string; navTitle: string }, nodes: any[], tabPaths: string[], cartIndex: number): string {
+function pageJs(
+  page: { path: string; navTitle: string },
+  nodes: any[],
+  tabPaths: string[],
+  cartIndex: number,
+  up: string,
+  route: string,
+): string {
   const data = JSON.stringify(nodes, null, 2).split('\n').join('\n  ')
   const tabData = JSON.stringify(tabPaths)
   return `// ${page.path}.js
-const T = require('../../utils/theme.js')
-const H = require('../../utils/handlers.js')
+const T = require('${up}utils/theme.js')
+const H = require('${up}utils/handlers.js')
 
 const NODES = ${data}
 
@@ -405,13 +499,25 @@ Page(Object.assign({}, H, {
   },
   onLoad: function () {
     wx.setNavigationBarTitle({ title: ${JSON.stringify(page.navTitle)} })
+    var self = this
+    // 静态兜底：先用打包好的 NODES 渲染，再由数据层拉真实数据覆盖
+    // （local 模式不拉取，保证离线也能看；cloud / api 模式会自动变活）
+    try {
+      require('${up}utils/store.js').fetchPage(this.route, function (err, nodes) {
+        if (!err && nodes && nodes.length) self.setData({ nodes: nodes })
+      })
+    } catch (e) {}
+    try { require('${up}utils/store.js').track('page_view', { route: self.route }) } catch (e) {}
   },
   onShow: function () {
     // 同步购物车角标：每次进入页面都从本地缓存刷新角标数量
     if (this.syncCartBadge) this.syncCartBadge()
   },
   onShareAppMessage: function () {
-    return { title: ${JSON.stringify(page.navTitle)}, path: '/${page.path}/index' }
+    // 带参分享：把用户标识带出去，别人点开即可归因（local 模式为本地匿名 ID）
+    var uid = ''
+    try { uid = getApp().globalData.openid || '' } catch (e) {}
+    return { title: ${JSON.stringify(page.navTitle)}, path: '/${route}' + (uid ? '?from=' + uid : '') }
   }
 }))
 `
@@ -486,6 +592,8 @@ function projectConfig(p: MpProject): string {
       },
       compileType: 'miniprogram',
       libVersion: '3.0.0',
+      // 云开发模式才声明云函数根目录，否则会让开发者工具多一个空目录
+      cloudfunctionRoot: p.backend?.mode === 'cloud' ? 'cloudfunctions/' : undefined,
       appid: p.appid || 'touristappid',
       projectname: p.name || 'miniapp',
       simulatorType: 'wechat',
@@ -541,8 +649,10 @@ templates/render.wxml           通用组件渲染模板（递归渲染页面数
 templates/render.wxss           通用组件样式
 utils/theme.js                  全局主题变量，改这里可一键换色
 utils/handlers.js               页面公共交互（表单、导航、拨号、加购、跳转等）
-utils/store.js                  本地数据层（购物车 / 收藏持久化，零后端依赖）
+utils/store.js                  统一数据层（购物车 / 收藏 / 订单 / 表单 / 埋点）
 utils/privacy.js                隐私授权（微信平台强制要求，否则审核不过）
+${p.backend?.mode === 'cloud' ? 'cloudfunctions/               云函数：login / order / pay / form / cms\ncloudfunctions/README.md       数据库集合、权限与部署步骤' : ''}
+${p.backend?.subpackage ? 'sub/pages/                     分包页面（主包只留首页与 tabBar 页）' : ''}
 images/icons/                   组件图标（p_ 主色 / s_ 灰色 / w_ 白色）
 images/tabbar/                  底部导航图标
 deploy.bat / .sh              自动打开项目的部署脚本
@@ -558,21 +668,44 @@ DEPLOY.txt                     傻瓜式部署图文步骤
 - **加交互**：在页面 js 中新增函数，或在 \`utils/handlers.js\` 中扩展公共行为。
 - **接后端**：在 \`utils/handlers.js\` 的 \`onSubmit\` 等方法里调用 \`wx.request\`。
 
-## 本地数据与隐私（已内置，零后端即可跑）
+## 数据后端：${p.backend?.mode === 'cloud' ? '微信云开发' : p.backend?.mode === 'api' ? '自有接口' : '本地缓存'}
 
-- **购物车 / 收藏**：点商品卡片即「加入购物车」，数据写入 \`wx.setStorageSync\`（本地缓存），
-  底部购物车 tab 的角标数量会自动同步；收藏同理。换手机 / 清缓存才会丢，
-  接云开发或自有后端时，把 \`utils/store.js\` 里的 \`addCart / getCart / toggleFav\` 换成云库调用即可。
-- **隐私授权**：\`app.js\` 启动即调用 \`utils/privacy.js\` 的 \`ensurePrivacy()\`，
-  按微信要求弹出隐私协议授权（不接会被审核打回）。你的隐私政策链接请到
-  「微信公众平台 → 设置 → 服务内容 → 用户隐私指引」中配置。
+${p.backend?.mode === 'cloud' ? [
+  '- 环境 ID：\`' + (p.backend.envId || '（未填写，请回到编辑器补齐）') + '\`',
+  '- **首次运行三步**：① 开发者工具顶部「云开发」开通 → ② 把环境 ID 填回编辑器重新导出 → ③ 右键 \`cloudfunctions/\` 下每个目录选「上传并部署：云端安装依赖」',
+  '- 数据库集合 / 权限 / 索引见 \`cloudfunctions/README.md\`，照着建即可',
+  '- 登录（openid）、下单、支付签名、表单入库、内容管理（cms）**已全部打通**，页面代码零改动',
+].join('\n')
+  : p.backend?.mode === 'api' ? [
+  '- 接口根地址：\`' + (p.backend.apiBase || '（未填写，请回到编辑器补齐）') + '\`',
+  '- 需提供 5 个接口，统一返回 \`{ ok: true, data: ... }\`：\`POST /api/login\`、\`/api/order\`、\`/api/form\`、\`/api/page\`、\`/api/track\`',
+  '- 记得在微信公众平台把接口域名加进 **request 合法域名**（开发期可勾「不校验合法域名」）',
+].join('\n')
+  : [
+  '- 购物车 / 收藏 / 订单 / 表单全部存在用户手机本地（\`wx.setStorageSync\`），**零后端、零费用**，导入即可跑通完整交互',
+  '- 换设备或清缓存会丢；想跨设备 / 真实收款，改 \`utils/store.js\` 顶部的 \`MODE\` 一行（\`cloud\` 或 \`api\`），或回到编辑器切换「数据后端」重新导出',
+].join('\n')}
+${p.backend?.subpackage ? '\n> 已开启**分包**：主包只保留首页与 tabBar 页，其余页面在 \`sub/\`，可规避主包 2MB 限制。' : ''}
 
-## 如何接入支付 / 后端（需自行实现服务端）
+## 运行期数据：静态兜底 + 云端覆盖
 
-微信支付**必须走后端**：① 前端下单 → ② 你的服务端调用微信「统一下单」拿到 \`prepay_id\`
-→ ③ 服务端用 \`nonceStr / timeStamp / signType / paySign\` 签名后回传前端 →
-④ 前端调 \`wx.requestPayment\`。点「去结算」按钮已预留 \`onPay()\` 接入点（当前弹窗提示，
-不内置真实支付）。后端可用微信云开发 CloudBase，或任意自有 HTTP 服务。
+页面先渲染打包好的静态 \`NODES\`（离线也有完整画面），\`onLoad\` 再调 \`store.fetchPage()\` 拉真实数据覆盖。
+${p.backend?.mode === 'local' ? '本地模式不拉取，保持静态。' : '有数据即自动变活，拉不到就静默沿用静态兜底，不会白屏。'}
+
+## 隐私授权（已内置）
+
+\`app.js\` 启动即调用 \`utils/privacy.js\` 的 \`ensurePrivacy()\`，按微信要求弹出隐私协议授权
+（不接会被审核打回）。隐私政策链接在「微信公众平台 → 设置 → 服务内容 → 用户隐私指引」配置。
+
+## 如何接入支付（必须走服务端）
+
+微信支付**必须**由你的服务端发起：① 前端下单 → ② 服务端调微信「统一下单」拿 \`prepay_id\`
+→ ③ 服务端用 \`nonceStr / timeStamp / signType / paySign\` 二次签名回传 → ④ 前端 \`wx.requestPayment\`。
+纯前端无法完成，任何模板都绕不过。
+
+${p.backend?.mode === 'cloud' ? '**本包已按云开发搭好**：在 \`cloudfunctions/pay/index.js\` 顶部填好 \`MCHID / MCHKEY / APPID / NOTIFY_URL\`（推荐配成云函数环境变量，别进代码库），点「去结算」即可拉起真实收银台。未配置时前端会**明确弹窗提示**，不会静默失败。' : ''}
+${p.backend?.mode === 'api' ? '**本包前端已接好**：点「去结算」会依次请求 \`/api/order\` 下单、\`pay\` 取支付参数，再由前端 \`wx.requestPayment\`。你只需在服务端实现这两个接口并做签名。' : ''}
+${p.backend?.mode === 'local' ? '**当前是本地模式**：点「去结算」会生成一张本地订单并弹出接入指引。把数据后端切成「微信云开发 / 自有接口」重新导出，即可拿到含支付签名的完整链路。' : ''}
 
 ## 说明
 
@@ -587,6 +720,8 @@ DEPLOY.txt                     傻瓜式部署图文步骤
 
 export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile[] {
   const files: GenFile[] = []
+  const be = p.backend as Backend | undefined
+  const mode: Backend['mode'] = be?.mode ?? 'local'
   const hasTab = p.tabBar.enabled && p.tabBar.items.length > 0
   const pagePaths = p.pages.map((x) => x.path)
   const tabPaths = p.tabBar.enabled ? p.tabBar.items.map((i) => i.pagePath) : []
@@ -595,13 +730,29 @@ export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile
     ? p.tabBar.items.findIndex((it) => /cart|购物|购/.test(it.pagePath + '|' + it.text))
     : -1
 
-  files.push({ path: 'app.js', content: APP_JS })
+  /* 分包（可选）：主包只保留首页与 tabBar 页，其余页面进 sub/，规避主包 2MB 限制 */
+  const mainSet = new Set<string>([pagePaths[0], ...tabPaths])
+  const subPaths = be?.subpackage ? pagePaths.filter((x) => !mainSet.has(x)) : []
+  const subSet = new Set(subPaths)
+  const routeOf = (path: string) => (subSet.has(path) ? `sub/${path}` : path)
+  const dirOf = (path: string) => (subSet.has(path) ? `sub/${path}` : path)
+  const upOf = (path: string) => (subSet.has(path) ? '../../../' : '../../')
+  // 跳转目标若落在分包，路由要带上分包前缀
+  const remapLinks = (nodes: any[]) => {
+    nodes.forEach((n: any) => {
+      if (n._link && subSet.has(n._link)) n._link = routeOf(n._link)
+      if (n.children) remapLinks(n.children)
+    })
+  }
+
+  files.push({ path: 'app.js', content: appJs(be) })
   files.push({ path: 'app.wxss', content: APP_WXSS })
   files.push({
     path: 'app.json',
     content: JSON.stringify(
       {
-        pages: pagePaths,
+        pages: pagePaths.filter((x) => !subSet.has(x)),
+        ...(subPaths.length ? { subpackages: [{ root: 'sub', name: 'sub', pages: subPaths }] } : {}),
         window: {
           backgroundTextStyle: 'light',
           navigationBarBackgroundColor: p.pages[0]?.navBg || '#ffffff',
@@ -641,15 +792,23 @@ export function generateCodeFiles(p: MpProject, tabIcons?: Set<string>): GenFile
   files.push({ path: 'project.config.json', content: projectConfig(p) })
   files.push({ path: 'utils/theme.js', content: themeJs(p.theme) })
   files.push({ path: 'utils/handlers.js', content: HANDLERS_JS })
-  files.push({ path: 'utils/store.js', content: STORE_JS })
+  files.push({ path: 'utils/store.js', content: storeJs(be) })
   files.push({ path: 'utils/privacy.js', content: PRIVACY_JS })
   files.push({ path: 'templates/render.wxml', content: RENDER_WXML })
   files.push({ path: 'templates/render.wxss', content: RENDER_WXSS })
 
+  // 云开发模式：附带云函数包（login / order / pay / form / cms）
+  if (mode === 'cloud') {
+    for (const f of cloudFiles()) files.push(f)
+  }
+
   p.pages.forEach((pg) => {
     const nodes = compileNodes(pg.nodes)
-    const dir = pg.path.replace(/^pages\//, 'pages/')
-    files.push({ path: `${dir}.js`, content: pageJs(pg, nodes, tabPaths, cartIndex) })
+    remapLinks(nodes)
+    const dir = dirOf(pg.path)
+    const up = upOf(pg.path)
+    const route = routeOf(pg.path)
+    files.push({ path: `${dir}.js`, content: pageJs(pg, nodes, tabPaths, cartIndex, up, route) })
     files.push({ path: `${dir}.wxml`, content: pageWxml() })
     files.push({ path: `${dir}.wxss`, content: pageWxss(pg.background) })
     files.push({ path: `${dir}.json`, content: pageJson(pg) })

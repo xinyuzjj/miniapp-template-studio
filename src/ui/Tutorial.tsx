@@ -188,6 +188,8 @@ function FaqTab() {
     ['数据会传到服务器吗？', '不会。整个工具跑在浏览器里，导出用 JSZip 在本地打包，项目数据只存在你本机 localStorage。'],
     ['购物车 / 收藏的数据存在哪？', '导出包默认用微信本地缓存（wx.setStorageSync），写入 utils/store.js，点商品卡片即加购、底部角标自动同步，零后端即可跑。要上云把 store.js 里的 addCart / toggleFav 换成云开发或自有后端调用即可。'],
     ['为什么要点开就弹隐私授权？', '微信平台强制要求：不接隐私授权，小程序会被审核打回。导出包 app.js 启动即调 utils/privacy.js 的 ensurePrivacy() 弹窗，你的隐私政策链接在微信公众平台配置。'],
+    ['想让订单 / 表单真的入库怎么办？', '右侧「主题与页面 → 数据后端」选「微信云开发」，填云环境 ID 后重新导出，包里会带 login / order / pay / form / cms 五个云函数；在开发者工具里逐个右键「上传并部署」，再按 cloudfunctions/README.md 建集合即可。已有服务器就选「自有接口」，填根地址，实现 /api/login、/api/order、/api/form 等接口。'],
+    ['数据后端三档怎么选？', '本地缓存（默认）零成本、导入即可跑通加购下单，但换设备就丢；微信云开发免服务器、有免费额度，适合要真实落库和收款；自有接口适合已有后端。三者共用一套 utils/store.js，改 MODE 一行即可互切，页面代码不用动。'],
   ]
   return (
     <div className="space-y-4">
