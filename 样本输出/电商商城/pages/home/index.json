@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "潮流生活",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
+  "backgroundTextStyle": "light",
+  "enablePullDownRefresh": false,
+  "usingComponents": {}
+}

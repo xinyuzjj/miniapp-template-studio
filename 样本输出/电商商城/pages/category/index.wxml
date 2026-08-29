@@ -1,0 +1,7 @@
+<import src="/templates/render.wxml" />
+
+<view class="page">
+  <block wx:for="{{nodes}}" wx:for-item="node" wx:key="id">
+    <template is="mp-node" data="{{node: node, T: T}}" />
+  </block>
+</view>

@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: #f4f6fa;
+    color: #191d28;
+    -webkit-font-smoothing: antialiased;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .thin-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .thin-scroll::-webkit-scrollbar-thumb {
+    background: #d5d9e2;
+    border-radius: 4px;
+  }
+  .thin-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* 手机外壳 */
+.phone-shell {
+  background: #10131c;
+  border-radius: 46px;
+  padding: 12px;
+  box-shadow: 0 24px 70px rgba(16, 24, 40, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  position: relative;
+}
+.phone-notch {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 108px;
+  height: 24px;
+  background: #10131c;
+  border-radius: 0 0 14px 14px;
+  z-index: 40;
+}
+
+input[type='color'] {
+  -webkit-appearance: none;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type='color']::-webkit-color-swatch {
+  border: 1px solid #e3e7ee;
+  border-radius: 6px;
+}

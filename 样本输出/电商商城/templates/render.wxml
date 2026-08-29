@@ -1,0 +1,461 @@
+<template name="mp-node">
+
+  <!-- ============ 基础 ============ -->
+  <view wx:if="{{node.type === 'view'}}" style="{{node._s}}">
+    <view class="mp-flex {{node.props.direction === 'row' ? 'mp-row' : 'mp-col'}}" style="gap:{{node.props.gap * 2}}rpx;align-items:{{node.props.direction === 'row' ? (node.props.align === 'stretch' ? 'stretch' : node.props.align) : 'stretch'}}">
+      <view wx:if="{{!node.children || node.children.length === 0}}" class="mp-empty">空容器</view>
+      <block wx:for="{{node.children}}" wx:for-item="child" wx:key="id">
+        <template is="mp-node" data="{{node: child, T: T}}"/>
+      </block>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'title'}}" class="mp-title" style="{{node._s}}">
+    <view class="mp-title-main" style="text-align:{{node.props.align === 'center' ? 'center' : 'left'}}">
+      <view class="mp-title-1" style="font-size:{{node.props.size * 2}}rpx;color:{{node.props.color || T.text}}">{{node.props.content}}</view>
+      <view wx:if="{{node.props.sub}}" class="mp-title-2" style="color:{{node.props.subColor || T.subText}}">{{node.props.sub}}</view>
+    </view>
+    <view wx:if="{{node.props.more}}" class="mp-title-more" style="color:{{T.subText}}">
+      <text>{{node.props.moreText}}</text>
+      <image src="/images/icons/s_chevronRight.png" class="mp-ic" style="width:24rpx;height:24rpx"/>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'text'}}" style="{{node._s}}">
+    <view class="mp-text" style="font-size:{{node.props.size * 2}}rpx;color:{{node.props.color || T.subText}};font-weight:{{node.props.weight}};text-align:{{node.props.align}};line-height:{{node.props.lineHeight}}">{{node.props.content}}</view>
+  </view>
+
+  <view wx:elif="{{node.type === 'image'}}" style="{{node._s}}">
+    <image wx:if="{{node.props.image}}" src="{{node.props.image}}" mode="aspectFill" class="mp-img" style="width:100%;height:{{node.props.height * 2}}rpx;border-radius:{{node.props.radius * 2}}rpx"/><view wx:else class="mp-img" style="background:linear-gradient(135deg,{{node.props._g1}},{{node.props._g2}});width:100%;height:{{node.props.height * 2}}rpx;border-radius:{{node.props.radius * 2}}rpx"></view>
+    <view wx:if="{{node.props.caption}}" class="mp-caption" style="color:{{T.subText}}">{{node.props.caption}}</view>
+  </view>
+
+  <view wx:elif="{{node.type === 'divider'}}" style="{{node._s}}">
+    <view style="height:0;border-top:{{node.props.height}}px {{node.props.dashed ? 'dashed' : 'solid'}} {{node.props.color}}"></view>
+  </view>
+
+  <view wx:elif="{{node.type === 'blank'}}" style="{{node._s}};height:{{node.props.height * 2}}rpx"></view>
+
+  <!-- ============ 导航 ============ -->
+  <view wx:elif="{{node.type === 'search'}}" style="{{node._s}}">
+    <view class="mp-search" style="height:76rpx;border-radius:{{node.props.radius * 2}}rpx;background:{{node.props.background}};justify-content:{{node.props.align === 'center' ? 'center' : 'flex-start'}}">
+      <image src="/images/icons/s_search.png" class="mp-ic" style="width:30rpx;height:30rpx"/>
+      <text class="mp-search-ph">{{node.props.placeholder}}</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'notice'}}" style="{{node._s}}">
+    <view class="mp-notice" style="background:{{node.props.background}}">
+      <image src="/images/icons/p_{{node.props.icon}}.png" class="mp-ic" style="width:30rpx;height:30rpx"/>
+      <text class="mp-notice-tx" style="color:{{node.props.color}}">{{node.props.text}}</text>
+      <image src="/images/icons/p_chevronRight.png" class="mp-ic" style="width:26rpx;height:26rpx"/>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'swiper'}}" style="{{node._s}}">
+    <swiper class="mp-swiper" style="height:{{node.props.height * 2}}rpx;border-radius:{{node.props.radius * 2}}rpx" autoplay="{{node.props.autoplay}}" circular="{{true}}" indicator-dots="{{node.props.indicator === 'dot'}}" indicator-color="rgba(255,255,255,.55)" indicator-active-color="#ffffff">
+      <swiper-item wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i">
+        <view class="mp-swiper-item" style="border-radius:{{node.props.radius * 2}}rpx">
+          <image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-swiper-img" style="height:{{node.props.height * 2}}rpx"/><view wx:else class="mp-swiper-img" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});height:{{node.props.height * 2}}rpx"></view>
+          <view class="mp-swiper-mask"></view>
+          <view class="mp-swiper-txt">
+            <view class="mp-swiper-t1">{{it.title}}</view>
+            <view wx:if="{{it.desc}}" class="mp-swiper-t2">{{it.desc}}</view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <view wx:elif="{{node.type === 'grid'}}" style="{{node._s}}">
+    <view class="mp-grid">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-grid-item" style="width:{{100 / node.props.columns}}%">
+        <view class="mp-grid-ic" style="background:{{node.props.iconBg || T.primaryLight}};width:92rpx;height:92rpx;border-radius:28rpx">
+          <image src="/images/icons/p_{{it.icon}}.png" class="mp-ic" style="width:node.props.iconSize * 2rpx;height:node.props.iconSize * 2rpx"/>
+          <view wx:if="{{it.badge}}" class="mp-grid-badge" style="background:{{T.secondary}}">{{it.badge}}</view>
+        </view>
+        <view class="mp-grid-tx" style="color:{{T.text}};font-size:{{node.props.fontSize * 2}}rpx">{{it.text}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'tabs'}}" style="{{node._s}};background:{{node.props.background}}">
+    <scroll-view scroll-x class="mp-tabs">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-tab {{index === node.props.active ? 'on' : ''}}">
+        <text style="color:{{index === node.props.active ? (node.props.activeColor || T.primary) : T.subText}};font-weight:{{index === node.props.active ? 600 : 400}}">{{it.text}}</text>
+        <view wx:if="{{index === node.props.active}}" class="mp-tab-line" style="background:{{node.props.activeColor || T.primary}}"></view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ============ 营销 ============ -->
+  <view wx:elif="{{node.type === 'coupon'}}" style="{{node._s}}">
+    <scroll-view scroll-x class="mp-coupons">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-coupon" style="background:{{node.props.background}};border-color:{{T._sec25}}">
+        <view class="mp-cp-l" style="border-right-color:{{T._sec35}}">
+          <view class="mp-cp-amt" style="color:{{T.secondary}}"><text class="mp-cp-y">¥</text>{{it.amount}}</view>
+          <view class="mp-cp-cond" style="color:{{T.subText}}">{{it.condition}}</view>
+        </view>
+        <view class="mp-cp-m">
+          <view class="mp-cp-name" style="color:{{T.text}}">{{it.name}}</view>
+          <view class="mp-cp-exp" style="color:{{T.subText}}">有效期至 2026.12.31</view>
+        </view>
+        <view class="mp-cp-btn" style="background:{{T.secondary}}">{{it.tag}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:elif="{{node.type === 'seckill'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-sk-head">
+      <view class="mp-sk-title" style="color:{{T.text}}">{{node.props.title}}</view>
+      <view class="mp-sk-time" style="color:{{T.subText}}">
+        <image src="/images/icons/s_clock.png" class="mp-ic" style="width:24rpx;height:24rpx"/>
+        <text>{{node.props.sub}}</text>
+      </view>
+    </view>
+    <scroll-view scroll-x class="mp-sk-list">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-sk-item">
+        <image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-sk-img"/><view wx:else class="mp-sk-img" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view>
+        <view class="mp-sk-name" style="color:{{T.text}}">{{it.name}}</view>
+        <view class="mp-sk-price">
+          <text class="mp-sk-p1" style="color:{{T.secondary}}">¥{{it.price}}</text>
+          <text class="mp-sk-p2">¥{{it.origin}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:elif="{{node.type === 'banner'}}" style="{{node._s}}">
+    <view class="mp-banner" style="border-radius:{{(node._r || 12) * 2}}rpx">
+      <image wx:if="{{node.props.image}}" src="{{node.props.image}}" mode="aspectFill" class="mp-banner-bg"/><view wx:else class="mp-banner-bg" style="background:linear-gradient(135deg,{{node.props._g1}},{{node.props._g2}});"></view>
+      <view class="mp-banner-mask"></view>
+      <view class="mp-banner-txt">
+        <view class="mp-banner-t1">{{node.props.title}}</view>
+        <view class="mp-banner-t2">{{node.props.sub}}</view>
+        <view wx:if="{{node.props.buttonText}}" class="mp-banner-btn">{{node.props.buttonText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'countdown'}}" style="{{node._s}}">
+    <view class="mp-cd" style="background:linear-gradient(120deg,{{T.primary}},{{T._pri72}})">
+      <view class="mp-cd-title">{{node.props.title}}</view>
+      <view class="mp-cd-box">
+        <block wx:if="{{node.props.days}}"><text class="mp-cd-num">{{node.props.days}}</text><text class="mp-cd-lb">天</text></block>
+        <block wx:if="{{node.props.hours}}"><text class="mp-cd-num">{{node.props.hours}}</text><text class="mp-cd-lb">时</text></block>
+        <block wx:if="{{node.props.minutes}}"><text class="mp-cd-num">{{node.props.minutes}}</text><text class="mp-cd-lb">分</text></block>
+        <block wx:if="{{node.props.seconds}}"><text class="mp-cd-num">{{node.props.seconds}}</text><text class="mp-cd-lb">秒</text></block>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============ 交易 ============ -->
+  <view wx:elif="{{node.type === 'goods'}}" style="{{node._s}}">
+    <!-- 横向滑动 -->
+    <scroll-view wx:if="{{node.props.layout === 'row'}}" scroll-x class="mp-g-row">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-row-item" style="background:{{T.cardBg}}">
+        <view class="mp-g-row-img">
+          <image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-fill"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view>
+          <view wx:if="{{it.tag}}" class="mp-g-tag" style="background:{{T.secondary}}">{{it.tag}}</view>
+        </view>
+        <view class="mp-g-row-body">
+          <view class="mp-g-name" style="color:{{T.text}}">{{it.name}}</view>
+          <view class="mp-g-desc" style="color:{{T.subText}}">{{it.desc}}</view>
+          <view wx:if="{{node.props.showPrice !== false}}" class="mp-g-price">
+            <text class="mp-g-p1" style="color:{{T.secondary}}">¥{{it.price}}</text>
+            <text wx:if="{{it.origin}}" class="mp-g-p2">¥{{it.origin}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 纵向列表 -->
+    <view wx:elif="{{node.props.layout === 'list'}}" class="mp-g-list" style="background:{{T.cardBg}}">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-list-item">
+        <view class="mp-g-list-img">
+          <image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-fill"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view>
+        </view>
+        <view class="mp-g-list-body">
+          <view class="mp-g-name" style="color:{{T.text}}">{{it.name}}</view>
+          <view class="mp-g-desc" style="color:{{T.subText}}">{{it.desc}}</view>
+          <view class="mp-g-list-foot">
+            <text wx:if="{{node.props.showPrice !== false}}" class="mp-g-p1" style="color:{{T.secondary}}">¥{{it.price}}</text>
+            <text class="mp-g-sales" style="color:{{T.subText}}">{{it.sales}} 人已选</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 网格 -->
+    <view wx:else class="mp-g-grid">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-g-grid-item" style="width:{{(100 - (node.props.columns - 1) * 2) / node.props.columns}}%;background:{{T.cardBg}}">
+        <view class="mp-g-grid-img">
+          <image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-fill"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view>
+          <view wx:if="{{it.tag}}" class="mp-g-tag" style="background:{{T.secondary}}">{{it.tag}}</view>
+        </view>
+        <view class="mp-g-grid-body">
+          <view class="mp-g-name" style="color:{{T.text}}">{{it.name}}</view>
+          <view class="mp-g-desc" style="color:{{T.subText}}">{{it.desc}}</view>
+          <view class="mp-g-price">
+            <text wx:if="{{node.props.showPrice !== false}}" class="mp-g-p1" style="color:{{T.secondary}}">¥{{it.price}}</text>
+            <text class="mp-g-sales" style="color:{{T.subText}}">{{it.sales}} 已售</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'shop'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-shop">
+      <view class="mp-shop-top">
+        <view class="mp-shop-logo">
+          <image wx:if="{{node.props.image}}" src="{{node.props.image}}" mode="aspectFill" class="mp-fill" style="border-radius:20rpx"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{node.props._g1}},{{node.props._g2}});border-radius:20rpx"></view>
+          <view wx:if="{{!node.props.logo}}" class="mp-shop-logo-ic"><image src="/images/icons/w_pin.png" class="mp-ic" style="width:44rpx;height:44rpx"/></view>
+        </view>
+        <view class="mp-shop-info">
+          <view class="mp-shop-name" style="color:{{T.text}}">{{node.props.name}}</view>
+          <view class="mp-shop-rate">
+            <block wx:for="{{[1,2,3,4,5]}}" wx:key="*this"><image src="/images/icons/p_star.png" class="mp-ic" style="width:24rpx;height:24rpx"/></block>
+            <text class="mp-shop-score" style="color:{{T.secondary}}">{{node.props.rating}}</text>
+            <text class="mp-shop-desc" style="color:{{T.subText}}">{{node.props.desc}}</text>
+          </view>
+          <view class="mp-shop-tags">
+            <text wx:for="{{node.props.tags}}" wx:for-item="tg" wx:key="*this" class="mp-shop-tag" style="color:{{T.primary}};background:{{T.primaryLight}}">{{tg}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="mp-shop-line"></view>
+      <view class="mp-shop-row">
+        <image src="/images/icons/s_pin.png" class="mp-ic" style="width:28rpx;height:28rpx"/>
+        <text class="mp-shop-addr" style="color:{{T.subText}}">{{node.props.address}}</text>
+      </view>
+      <view class="mp-shop-row">
+        <image src="/images/icons/s_clock.png" class="mp-ic" style="width:28rpx;height:28rpx"/>
+        <text class="mp-shop-addr" style="color:{{T.subText}}">营业时间 {{node.props.hours}}</text>
+        <text class="mp-shop-phone" style="color:{{T.primary}}"><image src="/images/icons/p_phone.png" class="mp-ic" style="width:26rpx;height:26rpx"/> {{node.props.phone}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'cartBar'}}" style="{{node._s}}">
+    <view class="mp-cart {{node.props.fixed === false ? '' : 'mp-cart-fixed'}}">
+      <view class="mp-cart-ic">
+        <image src="/images/icons/p_cart.png" class="mp-ic" style="width:48rpx;height:48rpx"/>
+        <view wx:if="{{node.props.count}}" class="mp-cart-badge" style="background:{{T.secondary}}">{{node.props.count}}</view>
+      </view>
+      <view class="mp-cart-mid">
+        <view class="mp-cart-total" style="color:{{T.text}}">{{node.props.total}}<text wx:if="{{node.props.tip}}" class="mp-cart-tip" style="color:{{T.secondary}}">{{node.props.tip}}</text></view>
+      </view>
+      <view class="mp-cart-btn" style="background:{{T.primary}}">{{node.props.buttonText}}</view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'priceCard'}}" style="{{node._s}}">
+    <view class="mp-pcards">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-pcard {{it.highlight ? 'on' : ''}}" style="border-color:{{it.highlight ? T.primary : '#eef0f4'}};background:{{it.highlight ? T._pri08 : T.cardBg}}">
+        <view wx:if="{{it.highlight}}" class="mp-pcard-hot" style="background:{{T.primary}}">最受欢迎</view>
+        <view class="mp-pcard-name" style="color:{{it.highlight ? T.primary : T.subText}}">{{it.name}}</view>
+        <view class="mp-pcard-price" style="color:{{T.text}}"><text class="mp-pcard-y">¥</text><text class="mp-pcard-v">{{it.price}}</text><text class="mp-pcard-per" style="color:{{T.subText}}">{{it.period}}</text></view>
+        <view class="mp-pcard-list">
+          <view wx:for="{{it._features}}" wx:for-item="ft" wx:key="*this" class="mp-pcard-row">
+            <image src="/images/icons/p_check.png" class="mp-ic" style="width:22rpx;height:22rpx"/>
+            <text class="mp-pcard-ft" style="color:{{T.subText}}">{{ft}}</text>
+          </view>
+        </view>
+        <view class="mp-pcard-btn" style="background:{{it.highlight ? T.primary : T._pri08}};color:{{it.highlight ? '#ffffff' : T.primary}}">{{it.btnText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============ 内容 ============ -->
+  <view wx:elif="{{node.type === 'article'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-articles">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-article">
+        <view class="mp-article-body">
+          <view class="mp-article-title" style="color:{{T.text}}">{{it.title}}</view>
+          <view class="mp-article-desc" style="color:{{T.subText}}">{{it.desc}}</view>
+          <view class="mp-article-meta" style="color:{{T.subText}}">
+            <text>{{it.author}}</text><text class="mp-dot">·</text><text>{{it.date}}</text><text class="mp-dot">·</text><text>{{it.views}} 阅读</text>
+          </view>
+        </view>
+        <view class="mp-article-img"><image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-fill"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'comment'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-cm">
+      <view class="mp-cm-head">
+        <view class="mp-cm-title" style="color:{{T.text}}">{{node.props.title}}<text class="mp-cm-count" style="color:{{T.subText}}">({{node.props.count}})</text></view>
+        <view class="mp-cm-rate">
+          <block wx:for="{{[1,2,3,4,5]}}" wx:key="*this"><image src="/images/icons/p_star.png" class="mp-ic" style="width:22rpx;height:22rpx"/></block>
+          <text class="mp-cm-score" style="color:{{T.secondary}}">{{node.props.rating}}</text>
+        </view>
+      </view>
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-cm-item">
+        <view class="mp-cm-top">
+          <view class="mp-cm-av"><image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-fill"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view><text wx:if="{{!it.avatar}}" class="mp-cm-av-tx">{{it._initial}}</text></view>
+          <view class="mp-cm-name" style="color:{{T.text}}">{{it.name}}</view>
+          <view class="mp-cm-stars">
+            <block wx:for="{{it._stars}}" wx:key="*this"><image src="/images/icons/p_star.png" class="mp-ic" style="width:22rpx;height:22rpx"/></block>
+          </view>
+        </view>
+        <view class="mp-cm-content">{{it.content}}</view>
+        <view class="mp-cm-foot">
+          <text wx:for="{{it._tags}}" wx:for-item="tg" wx:key="*this" class="mp-cm-tag" style="color:{{T.subText}};background:{{T._grayBg}}">{{tg}}</text>
+          <text class="mp-cm-date" style="color:{{T.subText}}">{{it.date}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'team'}}" style="{{node._s}}">
+    <view class="mp-team">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-team-item" style="background:{{T.cardBg}}">
+        <view class="mp-team-av"><image wx:if="{{it.image}}" src="{{it.image}}" mode="aspectFill" class="mp-fill"/><view wx:else class="mp-fill" style="background:linear-gradient(135deg,{{it._g1}},{{it._g2}});"></view><text wx:if="{{!it.avatar}}" class="mp-team-av-tx">{{it._initial}}</text></view>
+        <view class="mp-team-body">
+          <view class="mp-team-hd">
+            <text class="mp-team-name" style="color:{{T.text}}">{{it.name}}</text>
+            <text class="mp-team-title" style="color:{{T.primary}};background:{{T.primaryLight}}">{{it.title}}</text>
+          </view>
+          <view class="mp-team-desc" style="color:{{T.subText}}">{{it.desc}}</view>
+          <view class="mp-team-tags">
+            <text wx:for="{{it._tags}}" wx:for-item="tg" wx:key="*this" class="mp-team-tag" style="color:{{T.subText}};border-color:#eef0f4">{{tg}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'faq'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-faq">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-faq-item">
+        <view class="mp-faq-q">
+          <text class="mp-faq-badge" style="color:{{T.primary}};background:{{T._pri12}}">Q</text>
+          <text class="mp-faq-qt" style="color:{{T.text}}">{{it.q}}</text>
+        </view>
+        <view wx:if="{{index === 0}}" class="mp-faq-a" style="color:{{T.subText}}">{{it.a}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'steps'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view wx:if="{{node.props.direction === 'column'}}" class="mp-steps-col">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-step-col">
+        <view wx:if="{{index < node.props.items.length - 1}}" class="mp-step-line"></view>
+        <view class="mp-step-ic" style="background:{{T._pri12}}"><image src="/images/icons/p_{{it.icon}}.png" class="mp-ic" style="width:26rpx;height:26rpx"/></view>
+        <view class="mp-step-body">
+          <view class="mp-step-t" style="color:{{T.text}}">{{it.title}}</view>
+          <view class="mp-step-d" style="color:{{T.subText}}">{{it.desc}}</view>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="mp-steps-row">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-step-row">
+        <view wx:if="{{index > 0}}" class="mp-step-hl"></view>
+        <view wx:if="{{index < node.props.items.length - 1}}" class="mp-step-hr"></view>
+        <view class="mp-step-ic" style="background:{{T._pri12}}"><image src="/images/icons/p_{{it.icon}}.png" class="mp-ic" style="width:30rpx;height:30rpx"/></view>
+        <view class="mp-step-rt" style="color:{{T.text}}">{{it.title}}</view>
+        <view class="mp-step-rd" style="color:{{T.subText}}">{{it.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'stats'}}" style="{{node._s}}">
+    <view class="mp-stats" style="background:{{node.props.background || T._priGrad}};border-radius:{{(node._r || 12) * 2}}rpx">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-stat">
+        <view class="mp-stat-v">{{it.value}}</view>
+        <view class="mp-stat-l">{{it.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'timeline'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-tl">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-tl-item">
+        <view wx:if="{{index < node.props.items.length - 1}}" class="mp-tl-line"></view>
+        <view class="mp-tl-dot" style="background:{{index === 0 ? T.primary : '#dfe3ea'}}"></view>
+        <view class="mp-tl-body">
+          <view class="mp-tl-time" style="color:{{T.primary}}">{{it.time}}</view>
+          <view class="mp-tl-title" style="color:{{T.text}}">{{it.title}}</view>
+          <view class="mp-tl-desc" style="color:{{T.subText}}">{{it.desc}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============ 表单 ============ -->
+  <view wx:elif="{{node.type === 'form'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-form">
+      <view wx:if="{{node.props.title}}" class="mp-form-title" style="color:{{T.text}}">{{node.props.title}}</view>
+      <view wx:for="{{node.props.fields}}" wx:for-item="fld" wx:key="_i" class="mp-field">
+        <view class="mp-field-lb" style="color:{{T.subText}}">
+          <text wx:if="{{fld.required}}" class="mp-req" style="color:{{T.secondary}}">*</text>{{fld.label}}
+        </view>
+        <input wx:if="{{fld.type === 'text' || fld.type === 'phone'}}" class="mp-input" type="{{fld.type === 'phone' ? 'number' : 'text'}}" placeholder="{{fld.placeholder}}" placeholder-class="mp-ph" maxlength="{{fld.type === 'phone' ? 11 : -1}}" bindinput="onInput" data-i="{{index}}"/>
+        <textarea wx:elif="{{fld.type === 'textarea'}}" class="mp-input mp-textarea" placeholder="{{fld.placeholder}}" placeholder-class="mp-ph" bindinput="onInput" data-i="{{index}}"/>
+        <picker wx:elif="{{fld.type === 'date'}}" mode="date" bindchange="onDate" data-i="{{index}}">
+          <view class="mp-input mp-picker">{{fld.placeholder}}</view>
+        </picker>
+        <picker wx:elif="{{fld.type === 'picker'}}" range="{{['选项一','选项二','选项三']}}" bindchange="onPick" data-i="{{index}}">
+          <view class="mp-input mp-picker">{{fld.placeholder}}</view>
+        </picker>
+      </view>
+      <view class="mp-submit" style="background:{{T.primary}}" bindtap="onSubmit">{{node.props.submitText}}</view>
+      <view wx:if="{{node.props.tip}}" class="mp-form-tip" style="color:{{T.subText}}">{{node.props.tip}}</view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'map'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-map">
+      <view class="mp-map-bg" style="background:{{node._mapBg}}">
+        <view class="mp-map-marker">
+          <view class="mp-map-bubble">{{node.props.title}}</view>
+          <image src="/images/icons/p_pin.png" class="mp-ic" style="width:52rpx;height:52rpx"/>
+        </view>
+      </view>
+      <view class="mp-map-foot">
+        <view class="mp-map-info">
+          <view class="mp-map-title" style="color:{{T.text}}">{{node.props.title}}</view>
+          <view class="mp-map-addr" style="color:{{T.subText}}">{{node.props.address}}</view>
+        </view>
+        <text class="mp-map-dist" style="color:{{T.subText}}">{{node.props.distance}}</text>
+        <view class="mp-map-btn" style="background:{{T.primary}}" bindtap="onNavigate" data-lat="{{node.props.lat}}" data-lng="{{node.props.lng}}" data-name="{{node.props.title}}" data-addr="{{node.props.address}}">{{node.props.buttonText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'contact'}}" style="{{node._s}};background:{{T.cardBg}}">
+    <view class="mp-contact">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-ct-item" bindtap="onContact" data-v="{{it.value}}" data-a="{{it.action}}">
+        <view class="mp-ct-ic" style="background:{{T._pri12}}"><image src="/images/icons/p_{{it.icon}}.png" class="mp-ic" style="width:30rpx;height:30rpx"/></view>
+        <view class="mp-ct-body">
+          <view class="mp-ct-lb" style="color:{{T.subText}}">{{it.label}}</view>
+          <view class="mp-ct-v" style="color:{{T.text}}">{{it.value}}</view>
+        </view>
+        <view wx:if="{{it.action}}" class="mp-ct-act" style="color:{{T.primary}};border-color:{{T._pri30}}">{{it.action}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'serviceBar'}}" style="{{node._s}}">
+    <view class="mp-service">
+      <view wx:for="{{node.props.items}}" wx:for-item="it" wx:key="_i" class="mp-service-item">
+        <image src="/images/icons/p_{{it.icon}}.png" class="mp-ic" style="width:26rpx;height:26rpx"/>
+        <text class="mp-service-tx" style="color:{{T.subText}}">{{it.text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{node.type === 'footer'}}" style="{{node._s}}">
+    <view class="mp-footer">
+      <view class="mp-footer-1" style="color:{{T.subText}}">{{node.props.text}}</view>
+      <view wx:if="{{node.props.links}}" class="mp-footer-2">{{node.props.links}}</view>
+    </view>
+  </view>
+
+  <view wx:else style="{{node._s}}">
+    <view class="mp-empty">未知组件 {{node.type}}</view>
+  </view>
+
+</template>

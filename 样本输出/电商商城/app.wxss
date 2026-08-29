@@ -1,0 +1,11 @@
+page {
+  background: #f5f6f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Helvetica, sans-serif;
+  color: #1a1d28;
+  -webkit-font-smoothing: antialiased;
+}
+view, text, image, input, textarea, scroll-view, swiper, swiper-item {
+  box-sizing: border-box;
+}
+button::after { border: none; }
+::-webkit-scrollbar { width: 0; height: 0; color: transparent; }

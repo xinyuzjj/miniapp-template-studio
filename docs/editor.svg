@@ -1,0 +1,266 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-label="可视化编辑器界面：左侧组件库与图层、中间手机预览、右侧属性面板">
+  <defs>
+    <linearGradient id="e_brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5985ff"/>
+      <stop offset="100%" stop-color="#1f3ceb"/>
+    </linearGradient>
+    <linearGradient id="e_warm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffb88c"/>
+      <stop offset="100%" stop-color="#ff7a59"/>
+    </linearGradient>
+    <linearGradient id="e_cool" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a8c0ff"/>
+      <stop offset="100%" stop-color="#6f86d6"/>
+    </linearGradient>
+    <filter id="e_soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#101828" flood-opacity="0.10"/>
+    </filter>
+    <clipPath id="e_screen"><rect x="512" y="152" width="200" height="356" rx="4"/></clipPath>
+  </defs>
+
+  <rect width="1200" height="620" fill="#f1f3f8"/>
+
+  <!-- ================= 顶栏 ================= -->
+  <g>
+    <rect x="24" y="20" width="1152" height="52" rx="12" fill="#ffffff" filter="url(#e_soft)"/>
+    <rect x="42" y="34" width="24" height="24" rx="7" fill="url(#e_brand)"/>
+    <path d="M50 46 L54 50 L60 42" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="76" y="51" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="14" font-weight="700" fill="#191d28">小程序模板工坊</text>
+    <rect x="196" y="36" width="1" height="20" fill="#eceef2"/>
+    <text x="214" y="51" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#525a73">潮流生活商城</text>
+    <rect x="310" y="37" width="70" height="20" rx="10" fill="#eef4ff"/>
+    <text x="345" y="51" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="10.5" fill="#1f3ceb" text-anchor="middle">电商零售</text>
+
+    <!-- 撤销 / 重做 / 全屏 -->
+    <g stroke="#8590a8" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M754 47 A8 8 0 1 1 762 39 L768 39"/>
+      <path d="M754 47 L754 41 M754 47 L760 47"/>
+      <path d="M812 47 A8 8 0 1 0 804 39 L798 39"/>
+      <path d="M812 47 L812 41 M812 47 L806 47"/>
+      <path d="M848 39 L848 34 L853 34 M876 34 L881 34 L881 39 M848 53 L848 58 L853 58 M876 58 L881 58 L881 53"/>
+    </g>
+
+    <rect x="910" y="32" width="112" height="28" rx="8" fill="#ffffff" stroke="#d5d9e2"/>
+    <path d="M930 46 L930 40 M927 43 L930 40 L933 43 M924 50 L936 50" stroke="#434a5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="978" y="51" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" fill="#434a5e" text-anchor="middle">导出代码</text>
+
+    <rect x="1032" y="32" width="112" height="28" rx="8" fill="url(#e_brand)"/>
+    <path d="M1050 48 C1050 42 1054 38 1058 37 C1059 41 1057 45 1051 47 Z M1052 49 L1049 52" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1100" y="51" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" fill="#ffffff" font-weight="600" text-anchor="middle">一键部署</text>
+  </g>
+
+  <!-- ================= 左侧面板 ================= -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="24" y="88" width="268" height="510" rx="12" fill="#ffffff" filter="url(#e_soft)"/>
+
+    <!-- 搜索 -->
+    <rect x="40" y="104" width="236" height="30" rx="8" fill="#f6f7f9"/>
+    <circle cx="56" cy="119" r="5" fill="none" stroke="#b0b8c9" stroke-width="1.4"/>
+    <path d="M60 123 L64 127" stroke="#b0b8c9" stroke-width="1.4" stroke-linecap="round"/>
+    <text x="72" y="123" font-size="11.5" fill="#b0b8c9">搜索组件…</text>
+
+    <!-- 组件库 -->
+    <text x="40" y="158" font-size="11" font-weight="700" fill="#8590a8" letter-spacing="1">营销</text>
+    <g>
+      <rect x="40" y="168" width="74" height="62" rx="9" fill="#f8faff" stroke="#e3e9f7"/>
+      <rect x="66" y="180" width="22" height="16" rx="4" fill="none" stroke="#ff7a59" stroke-width="1.6" stroke-dasharray="2 2"/>
+      <text x="77" y="216" font-size="10.5" fill="#434a5e" text-anchor="middle">优惠券</text>
+
+      <rect x="121" y="168" width="74" height="62" rx="9" fill="#f8faff" stroke="#e3e9f7"/>
+      <circle cx="158" cy="188" r="9" fill="none" stroke="#ff7a59" stroke-width="1.6"/>
+      <path d="M158 183 L158 188 L162 190" stroke="#ff7a59" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <text x="158" y="216" font-size="10.5" fill="#434a5e" text-anchor="middle">限时秒杀</text>
+
+      <rect x="202" y="168" width="74" height="62" rx="9" fill="#f8faff" stroke="#e3e9f7"/>
+      <rect x="228" y="181" width="22" height="14" rx="3" fill="none" stroke="#ff7a59" stroke-width="1.6"/>
+      <text x="239" y="216" font-size="10.5" fill="#434a5e" text-anchor="middle">活动横幅</text>
+    </g>
+
+    <text x="40" y="256" font-size="11" font-weight="700" fill="#8590a8" letter-spacing="1">导航</text>
+    <g>
+      <rect x="40" y="266" width="74" height="62" rx="9" fill="#f8faff" stroke="#e3e9f7"/>
+      <rect x="66" y="279" width="22" height="15" rx="3" fill="none" stroke="#3459f7" stroke-width="1.6"/>
+      <text x="77" y="314" font-size="10.5" fill="#434a5e" text-anchor="middle">轮播图</text>
+
+      <rect x="121" y="266" width="74" height="62" rx="9" fill="#f8faff" stroke="#e3e9f7"/>
+      <g stroke="#3459f7" stroke-width="1.6" fill="none">
+        <rect x="150" y="278" width="7" height="7" rx="1.5"/><rect x="160" y="278" width="7" height="7" rx="1.5"/>
+        <rect x="150" y="288" width="7" height="7" rx="1.5"/><rect x="160" y="288" width="7" height="7" rx="1.5"/>
+      </g>
+      <text x="158" y="314" font-size="10.5" fill="#434a5e" text-anchor="middle">宫格导航</text>
+
+      <rect x="202" y="266" width="74" height="62" rx="9" fill="#eef4ff" stroke="#3459f7" stroke-width="1.5"/>
+      <circle cx="239" cy="286" r="9" fill="none" stroke="#1f3ceb" stroke-width="1.6"/>
+      <path d="M239 282 L239 290 M235 286 L243 286" stroke="#1f3ceb" stroke-width="1.6" stroke-linecap="round"/>
+      <text x="239" y="314" font-size="10.5" fill="#1f3ceb" font-weight="600" text-anchor="middle">悬浮按钮</text>
+    </g>
+
+    <rect x="40" y="348" width="236" height="1" fill="#eceef2"/>
+
+    <!-- 图层树 -->
+    <text x="40" y="374" font-size="11" font-weight="700" fill="#8590a8" letter-spacing="1">图层</text>
+    <g font-size="11.5" fill="#434a5e">
+      <rect x="40" y="384" width="236" height="26" rx="6" fill="#f6f7f9"/>
+      <text x="54" y="401">轮播图</text>
+      <rect x="40" y="414" width="236" height="26" rx="6" fill="#eef4ff"/>
+      <rect x="40" y="414" width="3" height="26" rx="1.5" fill="#1f3ceb"/>
+      <text x="54" y="431" fill="#1f3ceb" font-weight="600">宫格导航</text>
+      <rect x="40" y="444" width="236" height="26" rx="6" fill="#f6f7f9"/>
+      <text x="54" y="461">商品列表</text>
+      <text x="66" y="489" fill="#8590a8" font-size="11">└ 商品卡 × 4</text>
+    </g>
+
+    <rect x="40" y="504" width="236" height="1" fill="#eceef2"/>
+
+    <!-- 页面 -->
+    <text x="40" y="530" font-size="11" font-weight="700" fill="#8590a8" letter-spacing="1">页面</text>
+    <g font-size="11.5">
+      <rect x="40" y="540" width="112" height="24" rx="6" fill="url(#e_brand)"/>
+      <text x="54" y="556" fill="#ffffff" font-weight="600">首页</text>
+      <circle cx="140" cy="552" r="6" fill="#ffffff" opacity="0.28"/>
+      <path d="M137 552 L143 552 M140 549 L140 555" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <rect x="160" y="540" width="116" height="24" rx="6" fill="#f6f7f9"/>
+      <text x="174" y="556" fill="#434a5e">商品列表</text>
+      <rect x="40" y="570" width="112" height="24" rx="6" fill="#f6f7f9"/>
+      <text x="54" y="586" fill="#434a5e">详情</text>
+      <rect x="160" y="570" width="116" height="24" rx="6" fill="#f6f7f9"/>
+      <text x="174" y="586" fill="#434a5e">我的</text>
+    </g>
+  </g>
+
+  <!-- ================= 中间手机预览 ================= -->
+  <g filter="url(#e_soft)">
+    <rect x="500" y="120" width="224" height="420" rx="28" fill="#191d28"/>
+    <rect x="508" y="128" width="208" height="404" rx="22" fill="#ffffff"/>
+  </g>
+  <rect x="598" y="136" width="26" height="5" rx="2.5" fill="#3a4050"/>
+
+  <g clip-path="url(#e_screen)" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="512" y="152" width="200" height="356" fill="#f6f7f9"/>
+    <rect x="512" y="152" width="200" height="32" fill="url(#e_brand)"/>
+    <text x="612" y="173" font-size="11.5" fill="#ffffff" font-weight="600" text-anchor="middle">潮流生活商城</text>
+
+    <rect x="524" y="192" width="176" height="24" rx="12" fill="#ffffff"/>
+    <text x="546" y="208" font-size="9.5" fill="#b0b8c9">搜索你想要的商品</text>
+    <circle cx="536" cy="204" r="4" fill="none" stroke="#b0b8c9" stroke-width="1.3"/>
+
+    <rect x="524" y="224" width="176" height="60" rx="9" fill="url(#e_warm)"/>
+    <text x="538" y="250" font-size="12" fill="#ffffff" font-weight="700">新品首发 5 折起</text>
+    <rect x="538" y="257" width="48" height="15" rx="7.5" fill="#ffffff" opacity="0.9"/>
+    <text x="562" y="268" font-size="8.5" fill="#ff7a59" font-weight="600" text-anchor="middle">立即抢购</text>
+
+    <!-- 选中的宫格（带选框） -->
+    <rect x="518" y="290" width="188" height="66" rx="8" fill="#ffffff"/>
+    <g>
+      <rect x="528" y="298" width="28" height="28" rx="9" fill="#eef4ff"/>
+      <rect x="536" y="306" width="12" height="12" rx="3" fill="#3459f7" opacity="0.7"/>
+      <text x="542" y="338" font-size="7.5" fill="#66718c" text-anchor="middle">上新</text>
+      <rect x="572" y="298" width="28" height="28" rx="9" fill="#eef4ff"/>
+      <circle cx="586" cy="312" r="6" fill="#3459f7" opacity="0.7"/>
+      <text x="586" y="338" font-size="7.5" fill="#66718c" text-anchor="middle">秒杀</text>
+      <rect x="616" y="298" width="28" height="28" rx="9" fill="#eef4ff"/>
+      <path d="M623 320 L630 306 L637 320 Z" fill="#3459f7" opacity="0.7"/>
+      <text x="630" y="338" font-size="7.5" fill="#66718c" text-anchor="middle">优惠</text>
+      <rect x="660" y="298" width="28" height="28" rx="9" fill="#eef4ff"/>
+      <rect x="667" y="305" width="14" height="14" rx="7" fill="none" stroke="#3459f7" stroke-width="1.8" opacity="0.7"/>
+      <text x="674" y="338" font-size="7.5" fill="#66718c" text-anchor="middle">会员</text>
+    </g>
+    <rect x="518" y="290" width="188" height="66" rx="8" fill="none" stroke="#1f3ceb" stroke-width="1.6"/>
+    <rect x="518" y="278" width="58" height="14" rx="4" fill="#1f3ceb"/>
+    <text x="547" y="288.5" font-size="8.5" fill="#ffffff" text-anchor="middle">宫格导航</text>
+
+    <rect x="524" y="366" width="84" height="70" rx="9" fill="#ffffff"/>
+    <rect x="524" y="366" width="84" height="38" rx="9" fill="url(#e_cool)"/>
+    <rect x="532" y="411" width="54" height="5" rx="2.5" fill="#eceef2"/>
+    <text x="532" y="430" font-size="10.5" fill="#ff4d4f" font-weight="700">¥129</text>
+    <rect x="616" y="366" width="84" height="70" rx="9" fill="#ffffff"/>
+    <rect x="616" y="366" width="84" height="38" rx="9" fill="url(#e_warm)"/>
+    <rect x="624" y="411" width="42" height="5" rx="2.5" fill="#eceef2"/>
+    <text x="624" y="430" font-size="10.5" fill="#ff4d4f" font-weight="700">¥89</text>
+
+    <!-- tabBar -->
+    <rect x="512" y="464" width="200" height="44" fill="#ffffff"/>
+    <rect x="512" y="464" width="200" height="1" fill="#eceef2"/>
+    <g font-size="8">
+      <rect x="536" y="474" width="14" height="14" rx="4" fill="#1f3ceb"/>
+      <text x="543" y="500" fill="#1f3ceb" text-anchor="middle">首页</text>
+      <rect x="586" y="474" width="14" height="14" rx="4" fill="#b0b8c9"/>
+      <text x="593" y="500" fill="#8590a8" text-anchor="middle">分类</text>
+      <rect x="636" y="474" width="14" height="14" rx="4" fill="#b0b8c9"/>
+      <text x="643" y="500" fill="#8590a8" text-anchor="middle">我的</text>
+    </g>
+  </g>
+
+  <text x="612" y="568" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="11.5" fill="#8590a8" text-anchor="middle">实时预览 · 所见即所得</text>
+
+  <!-- ================= 右侧属性面板 ================= -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="932" y="88" width="244" height="510" rx="12" fill="#ffffff" filter="url(#e_soft)"/>
+
+    <text x="948" y="114" font-size="13" font-weight="700" fill="#191d28">宫格导航</text>
+    <rect x="1030" y="102" width="46" height="17" rx="8.5" fill="#eef4ff"/>
+    <text x="1053" y="114.5" font-size="9.5" fill="#1f3ceb" text-anchor="middle">导航</text>
+
+    <!-- 操作条 -->
+    <g font-size="10">
+      <rect x="948" y="130" width="42" height="24" rx="6" fill="#f6f7f9"/>
+      <text x="969" y="146" fill="#434a5e" text-anchor="middle">上移</text>
+      <rect x="996" y="130" width="42" height="24" rx="6" fill="#f6f7f9"/>
+      <text x="1017" y="146" fill="#434a5e" text-anchor="middle">下移</text>
+      <rect x="1044" y="130" width="42" height="24" rx="6" fill="#f6f7f9"/>
+      <text x="1065" y="146" fill="#434a5e" text-anchor="middle">复制</text>
+      <rect x="1092" y="130" width="68" height="24" rx="6" fill="#fff1f0"/>
+      <text x="1126" y="146" fill="#e5484d" text-anchor="middle">删除</text>
+    </g>
+
+    <rect x="948" y="168" width="212" height="1" fill="#eceef2"/>
+
+    <!-- 字段 -->
+    <g font-size="11">
+      <text x="948" y="192" fill="#66718c">每行个数</text>
+      <rect x="948" y="200" width="212" height="30" rx="8" fill="#ffffff" stroke="#d5d9e2"/>
+      <text x="962" y="219.5" fill="#191d28">4</text>
+      <text x="1140" y="219.5" fill="#8590a8" text-anchor="end">个</text>
+
+      <text x="948" y="252" fill="#66718c">图标风格</text>
+      <rect x="948" y="260" width="212" height="30" rx="8" fill="#ffffff" stroke="#d5d9e2"/>
+      <text x="962" y="279.5" fill="#191d28">圆角方块</text>
+      <path d="M1138 275 L1142 280 L1146 275" fill="none" stroke="#8590a8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <text x="948" y="312" fill="#66718c">主题色</text>
+      <rect x="948" y="320" width="212" height="30" rx="8" fill="#ffffff" stroke="#d5d9e2"/>
+      <rect x="956" y="327" width="16" height="16" rx="5" fill="#3459f7"/>
+      <text x="982" y="339.5" fill="#191d28" font-family="Consolas,monospace" font-size="10.5">#3459F7</text>
+
+      <text x="948" y="372" fill="#66718c">显示文字</text>
+      <rect x="1122" y="362" width="38" height="21" rx="10.5" fill="#3459f7"/>
+      <circle cx="1149.5" cy="372.5" r="8" fill="#ffffff"/>
+
+      <text x="948" y="406" fill="#66718c">显示角标</text>
+      <rect x="1122" y="396" width="38" height="21" rx="10.5" fill="#d5d9e2"/>
+      <circle cx="1132.5" cy="406.5" r="8" fill="#ffffff"/>
+    </g>
+
+    <rect x="948" y="432" width="212" height="1" fill="#eceef2"/>
+
+    <!-- 间距 -->
+    <text x="948" y="456" font-size="11" font-weight="700" fill="#8590a8" letter-spacing="1">间距</text>
+    <g font-size="10.5">
+      <rect x="948" y="466" width="100" height="28" rx="7" fill="#ffffff" stroke="#d5d9e2"/>
+      <text x="960" y="484.5" fill="#8590a8">上</text>
+      <text x="1036" y="484.5" fill="#191d28" text-anchor="end">8</text>
+      <rect x="1060" y="466" width="100" height="28" rx="7" fill="#ffffff" stroke="#d5d9e2"/>
+      <text x="1072" y="484.5" fill="#8590a8">下</text>
+      <text x="1148" y="484.5" fill="#191d28" text-anchor="end">8</text>
+      <rect x="948" y="500" width="100" height="28" rx="7" fill="#ffffff" stroke="#d5d9e2"/>
+      <text x="960" y="518.5" fill="#8590a8">左</text>
+      <text x="1036" y="518.5" fill="#191d28" text-anchor="end">14</text>
+      <rect x="1060" y="500" width="100" height="28" rx="7" fill="#ffffff" stroke="#d5d9e2"/>
+      <text x="1072" y="518.5" fill="#8590a8">右</text>
+      <text x="1148" y="518.5" fill="#191d28" text-anchor="end">14</text>
+    </g>
+
+    <rect x="948" y="548" width="212" height="34" rx="8" fill="#f8faff" stroke="#e3e9f7" stroke-dasharray="4 3"/>
+    <text x="1054" y="569.5" font-size="10.5" fill="#8590a8" text-anchor="middle">属性面板由 schema 自动生成</text>
+  </g>
+</svg>

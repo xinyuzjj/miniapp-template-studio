@@ -1,0 +1,33 @@
+{
+  "name": "miniapp-template-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "smoke": "esbuild scripts/smoke.tsx --bundle --platform=node --format=cjs --jsx=automatic --packages=external --outfile=scripts/.smoke.cjs --log-level=error --define:process.env.NODE_ENV='\"development\"' && node scripts/.smoke.cjs",
+    "gen:sample": "esbuild scripts/gen-entry.ts --bundle --platform=node --format=cjs --outfile=scripts/.gen.cjs --log-level=error && node scripts/.gen.cjs tmp-out",
+    "deploy": "node scripts/deploy.mjs"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.427.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "jsdom": "^30.0.1",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
+  }
+}

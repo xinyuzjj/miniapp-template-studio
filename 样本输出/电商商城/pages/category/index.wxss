@@ -1,0 +1,7 @@
+@import "/templates/render.wxss";
+
+.page {
+  min-height: 100vh;
+  background: #f5f6f9;
+  padding-bottom: env(safe-area-inset-bottom);
+}

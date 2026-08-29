@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="460" viewBox="0 0 1200 460" role="img" aria-label="架构图：三层 Schema 驱动 Web 预览与小程序代码双端渲染">
+  <defs>
+    <linearGradient id="a_brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5985ff"/>
+      <stop offset="100%" stop-color="#1f3ceb"/>
+    </linearGradient>
+    <filter id="a_soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="10" flood-color="#101828" flood-opacity="0.09"/>
+    </filter>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9" fill="none" stroke="#8590a8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arwB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9" fill="none" stroke="#1f3ceb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="460" fill="#f8faff"/>
+  <text x="600" y="44" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="19" font-weight="700" fill="#191d28" text-anchor="middle">一份 Schema，双端渲染</text>
+  <text x="600" y="68" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" fill="#66718c" text-anchor="middle">同一份数据同时喂给 Web 预览器和小程序代码生成器，保证「预览所见」= 「导出所得」</text>
+
+  <!-- ============ 左：Schema ============ -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="56" y="112" width="256" height="268" rx="14" fill="#ffffff" filter="url(#a_soft)"/>
+    <rect x="56" y="112" width="256" height="40" rx="14" fill="url(#a_brand)"/>
+    <rect x="56" y="140" width="256" height="12" fill="url(#a_brand)"/>
+    <text x="184" y="138" font-size="13.5" font-weight="700" fill="#ffffff" text-anchor="middle">三层 Schema</text>
+
+    <g>
+      <rect x="76" y="172" width="216" height="46" rx="9" fill="#eef4ff"/>
+      <text x="92" y="192" font-size="12.5" font-weight="700" fill="#1f3ceb">Project</text>
+      <text x="92" y="209" font-size="10.5" fill="#66718c">主题 / tabBar / 小程序名称</text>
+
+      <path d="M184 218 L184 234" stroke="#b0b8c9" stroke-width="1.5" marker-end="url(#arw)"/>
+
+      <rect x="92" y="240" width="200" height="46" rx="9" fill="#f0f4fd"/>
+      <text x="108" y="260" font-size="12.5" font-weight="700" fill="#1f3ceb">Page[]</text>
+      <text x="108" y="277" font-size="10.5" fill="#66718c">路径 / 标题 / 是否 tabBar</text>
+
+      <path d="M192 286 L192 302" stroke="#b0b8c9" stroke-width="1.5" marker-end="url(#arw)"/>
+
+      <rect x="108" y="308" width="184" height="52" rx="9" fill="#f6f7f9"/>
+      <text x="124" y="328" font-size="12.5" font-weight="700" fill="#1f3ceb">Node[]</text>
+      <text x="124" y="345" font-size="10.5" fill="#66718c">34 种组件 · 可无限嵌套</text>
+    </g>
+  </g>
+
+  <!-- 分叉箭头 -->
+  <path d="M312 190 C 380 190 380 176 436 176" fill="none" stroke="#1f3ceb" stroke-width="2" marker-end="url(#arwB)"/>
+  <path d="M312 300 C 380 300 380 314 436 314" fill="none" stroke="#1f3ceb" stroke-width="2" marker-end="url(#arwB)"/>
+
+  <!-- ============ 中上：Web 渲染 ============ -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="444" y="122" width="300" height="108" rx="14" fill="#ffffff" filter="url(#a_soft)"/>
+    <circle cx="472" cy="150" r="11" fill="#eef4ff"/>
+    <path d="M467 150 L471 154 L477 146" fill="none" stroke="#1f3ceb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="494" y="155" font-size="13" font-weight="700" fill="#191d28">Web 预览渲染器</text>
+    <text x="472" y="180" font-size="11" fill="#66718c">NodeRenderer.tsx · React</text>
+    <rect x="472" y="192" width="244" height="24" rx="6" fill="#f6f7f9"/>
+    <text x="484" y="208" font-family="Consolas,monospace" font-size="10.5" fill="#434a5e">switch (node.type) → JSX</text>
+  </g>
+
+  <!-- ============ 中下：小程序代码生成 ============ -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="444" y="262" width="300" height="126" rx="14" fill="#ffffff" filter="url(#a_soft)"/>
+    <circle cx="472" cy="290" r="11" fill="#eef4ff"/>
+    <path d="M468 285 L464 290 L468 295 M476 285 L480 290 L476 295" fill="none" stroke="#1f3ceb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="494" y="295" font-size="13" font-weight="700" fill="#191d28">小程序代码生成器</text>
+    <text x="472" y="320" font-size="11" fill="#66718c">mpgen.ts + wxml.ts</text>
+    <rect x="472" y="332" width="244" height="22" rx="6" fill="#f6f7f9"/>
+    <text x="484" y="347" font-family="Consolas,monospace" font-size="10" fill="#434a5e">预编译：渐变 / 拆行 / 星级数组</text>
+    <rect x="472" y="358" width="244" height="22" rx="6" fill="#f6f7f9"/>
+    <text x="484" y="373" font-family="Consolas,monospace" font-size="10" fill="#434a5e">递归模板：render.wxml (34 分支)</text>
+  </g>
+
+  <path d="M744 176 L800 176" fill="none" stroke="#8590a8" stroke-width="1.6" marker-end="url(#arw)"/>
+  <path d="M744 324 L800 324" fill="none" stroke="#8590a8" stroke-width="1.6" marker-end="url(#arw)"/>
+
+  <!-- ============ 右上：手机预览 ============ -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="808" y="122" width="336" height="108" rx="14" fill="#eef4ff" stroke="#d9e5ff"/>
+    <rect x="828" y="140" width="44" height="72" rx="7" fill="#ffffff" stroke="#bcd0ff"/>
+    <rect x="832" y="148" width="36" height="12" rx="3" fill="url(#a_brand)"/>
+    <rect x="832" y="164" width="36" height="20" rx="3" fill="#d9e5ff"/>
+    <rect x="832" y="188" width="16" height="16" rx="3" fill="#d9e5ff"/>
+    <rect x="852" y="188" width="16" height="16" rx="3" fill="#d9e5ff"/>
+    <text x="890" y="164" font-size="13" font-weight="700" fill="#1b28af">浏览器实时预览</text>
+    <text x="890" y="186" font-size="11" fill="#525a73">等比手机框 · 即改即看</text>
+    <text x="890" y="205" font-size="11" fill="#525a73">支持全屏禅模式</text>
+  </g>
+
+  <!-- ============ 右下：导出产物 ============ -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="808" y="262" width="336" height="126" rx="14" fill="#191d28"/>
+    <circle cx="828" cy="282" r="3.5" fill="#ff5f57"/>
+    <circle cx="840" cy="282" r="3.5" fill="#febc2e"/>
+    <circle cx="852" cy="282" r="3.5" fill="#28c840"/>
+    <text x="1128" y="286" font-size="10.5" fill="#64748b" text-anchor="end">可直接导入微信开发者工具</text>
+    <g font-family="Consolas,monospace" font-size="10.5">
+      <text x="828" y="308" fill="#7dd3fc">app.json</text><text x="900" y="308" fill="#475569">app.wxss</text><text x="972" y="308" fill="#475569">project.config.json</text>
+      <text x="828" y="328" fill="#86efac">templates/render.wxml</text><text x="988" y="328" fill="#475569">utils/handlers.js</text>
+      <text x="828" y="348" fill="#fcd34d">pages/index/</text><text x="924" y="348" fill="#fcd34d">pages/list/</text><text x="1012" y="348" fill="#475569">…</text>
+      <text x="828" y="368" fill="#c4b5fd">assets/icons/*.png</text><text x="972" y="368" fill="#475569">（Canvas 生成）</text>
+    </g>
+  </g>
+
+  <!-- 底注 -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <rect x="444" y="404" width="700" height="34" rx="8" fill="#ffffff" stroke="#e3e9f7"/>
+    <circle cx="466" cy="421" r="6" fill="#3ec48d"/>
+    <path d="M463 421 L465.5 423.5 L469.5 418.5" fill="none" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="482" y="425" font-size="11.5" fill="#434a5e">新增一个组件 = 改 3 处：registry.ts 声明字段 → NodeRenderer 加渲染分支 → render.wxml 加模板分支，属性面板与导出自动生效</text>
+  </g>
+</svg>

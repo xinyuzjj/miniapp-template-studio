@@ -1,0 +1,24 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+tmp-out/
+
+# 脚本临时产物
+scripts/.*.cjs
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# 本地工作记录（不进版本库）
+.workbuddy/
+
+# 本地环境
+.env
+.env.local
+.env.*.local
