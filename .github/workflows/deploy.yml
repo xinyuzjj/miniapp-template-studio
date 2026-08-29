@@ -24,7 +24,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # jsdom 30 依赖的 undici 需要 Node 22+（Node 20 会报
+          # webidl.util.markAsUncloneable is not a function）
+          node-version: 22
           cache: npm
 
       - name: Install dependencies

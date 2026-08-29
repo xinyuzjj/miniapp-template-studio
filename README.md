@@ -111,6 +111,8 @@ your-miniapp/
 
 ## 🚀 快速开始
 
+> 需要 **Node.js 22+**（冒烟测试用的 jsdom 30 依赖较新的 undici）
+
 ```bash
 # 克隆
 git clone https://github.com/xinyuzjj/miniapp-template-studio.git

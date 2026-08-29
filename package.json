@@ -3,6 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "description": "浏览器里可视化搭建微信小程序，一键导出可直接运行的完整源码",
+  "license": "MIT",
+  "homepage": "https://xinyuzjj.github.io/miniapp-template-studio/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xinyuzjj/miniapp-template-studio.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
